@@ -6,11 +6,23 @@ This integration supports Tuya devices connected via BLE.
 
 _Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)_
 
+FROM: https://github.com/markusg1234/ha_tuya_ble
+
+
+
+  **DOESN'T WORK YET !!!**
+
+
+
+__________________________________________
+Added Thermostatic Radiator Valve product_id: 'llflaywg'
+__________________________________________
+
 ## Installation
 
 Place the `custom_components` folder in your configuration directory (or add its contents to an existing `custom_components` folder). Alternatively install via [HACS](https://hacs.xyz/).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=markusg1234&repository=ha_tuya_ble&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=tomaz1&repository=ha_tuya_ble&category=integration)
 
 ## Usage
 
@@ -43,7 +55,7 @@ The integration works locally, but connection to Tuya BLE device requires device
   + Smart Lock (product_id 'ludzroix', 'isk2p555').
 
 * Climate (category_id 'wk')
-  + Thermostatic Radiator Valve (product_ids 'drlajpqc', 'nhj2j7su').
+  + Thermostatic Radiator Valve (product_ids 'drlajpqc', 'nhj2j7su', 'llflaywg').
 
 * Smart water bottle (category_id 'znhsb')
   + Smart water bottle (product_id 'cdlandip')
