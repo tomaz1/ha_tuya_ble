@@ -259,6 +259,7 @@ class TuyaBLEConfigFlow(ConfigFlow, domain=DOMAIN):
         data: dict[str, Any] | None = None
         errors: dict[str, str] = {}
         placeholders: dict[str, Any] = {}
+        def_country_name = await _get_default_country(self)
 
         if user_input is not None:
             data = await _try_login(
@@ -284,7 +285,7 @@ class TuyaBLEConfigFlow(ConfigFlow, domain=DOMAIN):
             if self._data is not None and len(self._data) > 0:
                 user_input.update(self._data)
 
-        return _show_login_form(self, user_input, errors, placeholders)
+        return _show_login_form(self, user_input, errors, placeholders, def_country_name)
 
     async def async_step_device(
         self, user_input: dict[str, Any] | None = None
