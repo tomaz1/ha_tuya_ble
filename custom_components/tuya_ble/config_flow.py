@@ -48,8 +48,6 @@ from .const import (
 from .devices import TuyaBLEData, get_device_readable_name
 from .cloud import HASSTuyaBLEDeviceManager
 
-from homeassistant.util.async_ import run_blocking_io
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -105,13 +103,14 @@ async def _try_login(
 async def _get_default_country(flow: FlowHandler) -> str | None:
     """Asynchronously fetch default country name."""
     try:
-        def_country = await run_blocking_io(
+        def_country = await flow.hass.async_add_executor_job(
             lambda: pycountry.countries.get(alpha_2=flow.hass.config.country)
         )
         if def_country:
             return def_country.name
     except Exception:
         return None
+
 
 
 def _show_login_form(
