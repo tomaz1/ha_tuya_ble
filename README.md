@@ -1,12 +1,4 @@
-# Home Assistant support for Tuya BLE devices
 
-## Overview
-
-This integration supports Tuya devices connected via BLE.
-
-_Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)_
-
-FROM: https://github.com/markusg1234/ha_tuya_ble
 .
 .
 .
@@ -16,6 +8,17 @@ FROM: https://github.com/markusg1234/ha_tuya_ble
 .
 .
 .
+
+# Home Assistant support for Tuya BLE devices
+
+## Overview
+
+This integration supports Tuya devices connected via BLE.
+
+_Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)_
+
+FROM: https://github.com/markusg1234/ha_tuya_ble
+
 __________________________________________
 Added Thermostatic Radiator Valve product_id: 'llflaywg'
 __________________________________________
