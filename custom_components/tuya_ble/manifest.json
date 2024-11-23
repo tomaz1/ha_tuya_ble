@@ -4,7 +4,7 @@
   "bluetooth": [
     {
       "connectable": true,
-      "service_data_uuid": "00001530-0000-3512-2118-0009af100700"
+      "service_data_uuid": "0000a201-0000-1000-8000-00805f9b34fb"
     }
   ],
   "codeowners": ["@tomaz1"],
