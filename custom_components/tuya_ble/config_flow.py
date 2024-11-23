@@ -117,7 +117,7 @@ def _show_login_form(
 
     def_country_name: str | None = None
     try:
-        def_country = await run_blocking_io(lambda: pycountry.countries.get(alpha_2=flow.hass.config.country)
+        def_country = await run_blocking_io(lambda: pycountry.countries.get(alpha_2=flow.hass.config.country))
         if def_country:
             def_country_name = def_country.name
     except:
