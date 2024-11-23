@@ -102,11 +102,24 @@ async def _try_login(
     return None
 
 
+async def _get_default_country(flow: FlowHandler) -> str | None:
+    """Asynchronously fetch default country name."""
+    try:
+        def_country = await run_blocking_io(
+            lambda: pycountry.countries.get(alpha_2=flow.hass.config.country)
+        )
+        if def_country:
+            return def_country.name
+    except Exception:
+        return None
+
+
 def _show_login_form(
     flow: FlowHandler,
     user_input: dict[str, Any],
     errors: dict[str, str],
     placeholders: dict[str, Any],
+    def_country_name: str | None,
 ) -> FlowResult:
     """Shows the Tuya IOT platform login form."""
     if user_input is not None and user_input.get(CONF_COUNTRY_CODE) is not None:
@@ -114,14 +127,6 @@ def _show_login_form(
             if country.country_code == user_input[CONF_COUNTRY_CODE]:
                 user_input[CONF_COUNTRY_CODE] = country.name
                 break
-
-    def_country_name: str | None = None
-    try:
-        def_country = await run_blocking_io(lambda: pycountry.countries.get(alpha_2=flow.hass.config.country))
-        if def_country:
-            def_country_name = def_country.name
-    except:
-        pass
 
     return flow.async_show_form(
         step_id="login",
@@ -131,7 +136,6 @@ def _show_login_form(
                     CONF_COUNTRY_CODE,
                     default=user_input.get(CONF_COUNTRY_CODE, def_country_name),
                 ): vol.In(
-                    # We don't pass a dict {code:name} because country codes can be duplicate.
                     [country.name for country in TUYA_COUNTRIES]
                 ),
                 vol.Required(
@@ -173,6 +177,7 @@ class TuyaBLEOptionsFlow(OptionsFlowWithConfigEntry):
         """Handle the Tuya IOT platform login step."""
         errors: dict[str, str] = {}
         placeholders: dict[str, Any] = {}
+        def_country_name = await _get_default_country(self)
         credentials: TuyaBLEDeviceCredentials | None = None
         address: str | None = self.config_entry.data.get(CONF_ADDRESS)
 
@@ -204,7 +209,7 @@ class TuyaBLEOptionsFlow(OptionsFlowWithConfigEntry):
             user_input = {}
             user_input.update(self.config_entry.options)
 
-        return _show_login_form(self, user_input, errors, placeholders)
+        return _show_login_form(self, user_input, errors, placeholders, def_country_name)
 
 
 class TuyaBLEConfigFlow(ConfigFlow, domain=DOMAIN):
