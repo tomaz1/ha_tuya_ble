@@ -17,7 +17,7 @@ This integration supports Tuya devices connected via BLE.
 
 _Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)_
 
-FROM: https://github.com/markusg1234/ha_tuya_ble
+This fork is FROM: https://github.com/markusg1234/ha_tuya_ble
 
 __________________________________________
 Added Thermostatic Radiator Valve product_id: 'llflaywg'
