@@ -151,9 +151,6 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
     """Representation of a Tuya BLE Climate."""
 
     def __init__(
-
-         _LOGGER.info(f"Test !!! ") #Krnekje našel kako se logira, tu je bilo še... a tu verjetno ni OK.. pustil da vidim kako se doda spremenljivke{self.entity_description.name}
-    
         self,
         hass: HomeAssistant,
         coordinator: DataUpdateCoordinator,
@@ -161,6 +158,7 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         product: TuyaBLEProductInfo,
         mapping: TuyaBLEClimateMapping,
     ) -> None:
+        _LOGGER.info(f"Test !!! ") #Krnekje našel kako se logira, tu je bilo še... a tu verjetno ni OK.. pustil da vidim kako se doda spremenljivke{self.entity_description.name}
         super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
         self._attr_hvac_mode = HVACMode.HEAT
