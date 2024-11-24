@@ -66,13 +66,12 @@ class TuyaBLECategoryClimateMapping:
 
 
 mapping: dict[str, TuyaBLECategoryClimateMapping] = {
-    "wkf": TuyaBLECategoryClimateMapping(
+    "wk": TuyaBLECategoryClimateMapping(
         products={
             **dict.fromkeys(
                 [
                 "drlajpqc", 
                 "nhj2j7su",
-                "llflaywg",
                 ],  # Thermostatic Radiator Valve
                 [
                 # Thermostatic Radiator Valve
@@ -123,6 +122,64 @@ mapping: dict[str, TuyaBLECategoryClimateMapping] = {
                     target_temperature_coefficient=10.0,
                     target_temperature_step=0.5,
                     target_temperature_dp_id=103,
+                    target_temperature_min=5.0,
+                    target_temperature_max=30.0,
+                    ),
+                ],
+            ),
+        },
+    ),
+    "wkf": TuyaBLECategoryClimateMapping(
+        products={
+            **dict.fromkeys(
+                [
+                "llflaywg",
+                ],  # Thermostatic Radiator Valve
+                [
+                # Thermostatic Radiator Valve
+                # - [ ] DPID code,               Type,     values,                                   - Comment
+                    
+                # - [x] 1,   mode,               Enum,     "auto","manual","off","on"                - Operation mode
+                # - [x] 2,   temp_set,           Integer,  "min":50,"max":350,"scale":1,"step":5,    - Valve temperature setting (devide by 10 to get C)
+                # - [ ] 3,   temp_current,       Integer,  "min":-300,"max":1000,"scale":1,"step":5  - Current room temerature (devide by 10 to get C)
+                # - [ ] 6,   work_state,         Enum,     "closed","opened"                         - Current valve state
+                # - [ ] 7,   window_state,       Enum,     "closed","opened"                         - Current windows state
+                # - [ ] 8,   window_check,       Boolean,  true,false                                - Settings to check window status (on/off)
+                # - [ ] 12,  child_lock,         Boolean,  true,false                                - Settings to set child lock (on/off)
+                # - [ ] 13,  battery_percentage, Integer,  "min":0,"max":100,"scale":0,"step":1      - Battery level in %
+                # - [ ] 14,  fault,              Bitmap,   fault_sensor/motorlow_batt/ug_low_batt    - Fault reason
+                # - [ ] 15,  lower_temp,         Integer,  "min":50,"max":150,"scale":1,"step":10    - Minimum temperature setting (devide by 10 to get C)
+                # - [ ] 16,  upper_temp,         Integer,  "min":200,"max":350,"scale":1,"step":10   - Maximum temperature setting (devide by 10 to get C)
+                # - [ ] 17,  week_program_13_1,  Raw,      TODO, example: AQEAAMgGHgDXCAAAlg8AANI=   - Probably daily heating schedule for Monday/Saturday
+                # - [ ] 18,  week_program_13_2,  Raw,      TODO                                      - Probably daily heating schedule
+                # - [ ] 19,  week_program_13_3,  Raw,      TODO                                      - Probably daily heating schedule
+                # - [ ] 20,  week_program_13_4,  Raw,      TODO                                      - Probably daily heating schedule
+                # - [ ] 21,  week_program_13_5,  Raw,      TODO                                      - Probably daily heating schedule
+                # - [ ] 22,  week_program_13_6,  Raw,      TODO                                      - Probably daily heating schedule
+                # - [ ] 23,  week_program_13_7,  Raw,      TODO                                      - Probably daily heating schedule
+                # - [ ] 101, temp_correction,    Integer,  "min":-100,"max":100,"scale":1,"step":1   - Temperature correcton [can be negative] (devide by 10 to get C)
+                # - [ ] 108, valve_open_degree,  Integer,  "min":0,"max":1000,"scale":1,"step":10    - Valve open degree
+                # - [ ] 109, mfg_model,          String,   TODO, example: bt3l_60x\u0000             - (read only) - ?? Manufacturing ??
+                # - [ ] 110, motor_thrust,       Enum,     "strong","middle","weak"                  - Motor thrust
+                # - [ ] 111, brightness,         Enum,     "high","mid","low"                        - LEDs brightness
+                # - [ ] 112, soft_version,       Integer,  "min":0,"max":65536,"scale":0,"step":1    - (read only) - Software version
+                # - [ ] 113, screen_orientation, Enum,     "up","right","down","left"                - Screen/LEDs orientaton
+                # - [ ] 114, system_mode,        Enum,     "comfort_mode","Eco_mode"                 - System mode (Comfort or Eco mode)
+                # - [ ] 115, switch_wrap,        Integer,  "min":5,"max":50,"scale":1,"step":1       - Switch deviation (energy-saving mode only)
+                # - [ ] 116, motor_data,         String,   TODO, example: 615, 2944, 0, 321          - (read only) - Motor data
+                TuyaBLEClimateMapping(
+                    description=ClimateEntityDescription(
+                        key="thermostatic_radiator_valve",
+                    ),
+                    hvac_switch_dp_id=12, #testno 12...ni prav samo za test bo OK #101,
+                    hvac_switch_mode=HVACMode.HEAT,
+                    hvac_modes=[HVACMode.OFF, HVACMode.HEAT],
+                    preset_mode_dp_ids={PRESET_AWAY: 106, PRESET_NONE: 106},
+                    current_temperature_dp_id=3,
+                    current_temperature_coefficient=10.0,
+                    target_temperature_coefficient=10.0,
+                    target_temperature_step=0.5,
+                    target_temperature_dp_id=2,
                     target_temperature_min=5.0,
                     target_temperature_max=30.0,
                     ),
