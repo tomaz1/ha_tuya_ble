@@ -27,12 +27,15 @@ Added Thermostatic Radiator Valve product_id: 'llflaywg'
   
 It is not so simple to add 'llflaywg'. We need to find all DPs which device uses. Good resources, what helped me:
   
-* In Tuya developer platform I HAD to change to DP mode to get all DP's !!!! (it took long time to find this information !)
+* In Tuya developer platform I HAD to change to DP mode to get all DP's !! (it took long time to find this information !)
        https://github.com/0x5e/homebridge-tuya-platform
-* or I could guess what DPs are via this and changing settings on phone app (which shows device's DPs and valuse): 
+       Open your project->Devices->All Devices->click pencil on device (Change Control Instruction Mode) -> "DP Instruction" and "Save Configuration"
+
+  Then: Smart Home Basic Service -> Smart Home Device Control-> Get Device Specification Attribute (last one will show "dp_id"s). [One in the middle with the same name, will not show DPs]
+* or we could guess what DPs are via this and changing settings on phone app (which shows device's DPs and valuse): 
         https://github.com/blakadder/tuya-uncover?tab=readme-ov-file
         
- \* better solution is first line, since we get also descriptions!
+ \* better solution is first line, because we also get descriptions for DPs!
 __________________________________________
 
 ## Installation
