@@ -20,7 +20,19 @@ _Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)
 This fork is FROM: https://github.com/markusg1234/ha_tuya_ble
 
 __________________________________________
+[@tomaz1](https://github.com/tomaz1/ha_tuya_ble):
 Added Thermostatic Radiator Valve product_id: 'llflaywg'
+
+[Radiator Valve was bought in Bauhaus-Slovenia]
+  
+It is not so simple to add 'llflaywg'. We need to find all DPs which device uses. Good resources, what helped me:
+  
+* In Tuya developer platform I HAD to change to DP mode to get all DP's !!!! (it took long time to find this information !)
+       https://github.com/0x5e/homebridge-tuya-platform
+* or I could guess what DPs are via this and changing settings on phone app (which shows device's DPs and valuse): 
+        https://github.com/blakadder/tuya-uncover?tab=readme-ov-file
+        
+ \* better solution is first line, since we get also descriptions!
 __________________________________________
 
 ## Installation
