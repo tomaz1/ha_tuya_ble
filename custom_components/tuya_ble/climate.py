@@ -66,7 +66,7 @@ class TuyaBLECategoryClimateMapping:
 
 
 mapping: dict[str, TuyaBLECategoryClimateMapping] = {
-    "wk": TuyaBLECategoryClimateMapping(
+    "wkf": TuyaBLECategoryClimateMapping(
         products={
             **dict.fromkeys(
                 [
