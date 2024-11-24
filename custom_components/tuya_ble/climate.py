@@ -158,12 +158,13 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         product: TuyaBLEProductInfo,
         mapping: TuyaBLEClimateMapping,
     ) -> None:
-        _LOGGER.info(f"Test !!! ") #Krnekje našel kako se logira, tu je bilo še... a tu verjetno ni OK.. pustil da vidim kako se doda spremenljivke{self.entity_description.name}
         super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
         self._attr_hvac_mode = HVACMode.HEAT
         self._attr_preset_mode = PRESET_NONE
         self._attr_hvac_action = HVACAction.HEATING
+
+        _LOGGER.info(f"Test !!! ") #Krnekje našel kako se logira, tu je bilo še... a tu verjetno ni OK.. pustil da vidim kako se doda spremenljivke{self.entity_description.name}
 
         if mapping.hvac_mode_dp_id and mapping.hvac_modes:
             self._attr_hvac_modes = mapping.hvac_modes
