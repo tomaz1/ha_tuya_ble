@@ -27,7 +27,7 @@ Added Thermostatic Radiator Valve product_id: 'llflaywg'
   
 It is not so simple to add 'llflaywg'. We need to find all DPs which device uses. Good resources, what helped me:
   
-* In Tuya developer platform I HAD to change to DP mode to get all DP's !! (it took long time to find this information !)
+* In Tuya developer platform we have to change to "DP mode" to get all DP's! (It took me long time to find this important information !)
        https://github.com/0x5e/homebridge-tuya-platform
        Open your project->Devices->All Devices->click pencil on device (Change Control Instruction Mode) -> "DP Instruction" and "Save Configuration"
 
