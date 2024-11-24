@@ -240,13 +240,12 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             ),
         },
     ),
-    "wkf": TuyaBLECategorySwitchMapping(
+    "wk": TuyaBLECategorySwitchMapping(
         products={
             **dict.fromkeys(
                 [
                     "drlajpqc",
                     "nhj2j7su",
-                    "llflaywg",
                 ],  # Thermostatic Radiator Valve
                 [
                     TuyaBLESwitchMapping(
@@ -289,6 +288,51 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             entity_category=EntityCategory.CONFIG,
                         ),
                     ),
+                    TuyaBLESwitchMapping(
+                        dp_id=108,
+                        description=SwitchEntityDescription(
+                            key="programming_switch",
+                            icon="mdi:calendar-clock",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                    ),
+                ],
+            ),
+        },
+    ),
+    "wkf": TuyaBLECategorySwitchMapping(
+        products={
+            **dict.fromkeys(
+                [
+                    "llflaywg",
+                ],  # Thermostatic Radiator Valve
+                [
+                    TuyaBLESwitchMapping(
+                        dp_id=8,
+                        description=SwitchEntityDescription(
+                            key="window_check",
+                            icon="mdi:window-closed",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                    ),
+                    TuyaBLESwitchMapping(
+                        dp_id=12,
+                        description=SwitchEntityDescription(
+                            key="child_lock",
+                            icon="mdi:account-lock",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                    ),
+                    #TODO:
+                    TuyaBLESwitchMapping( 
+                        dp_id=107,
+                        description=SwitchEntityDescription(
+                            key="programming_mode",
+                            icon="mdi:calendar-edit",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                    ),
+                    #TODO:
                     TuyaBLESwitchMapping(
                         dp_id=108,
                         description=SwitchEntityDescription(
