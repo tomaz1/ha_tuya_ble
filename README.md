@@ -3,7 +3,7 @@
 .
 .
 .
-#  **DOESN'T WORK YET !!!**
+#  **DOESN'T WORK (YET) !!!**
 .
 .
 .
