@@ -85,3 +85,13 @@ and this project adheres to [Semantic Versioning].
 
 - Connection to the device is postponed now. Previously some out of range device might prevents HA from fully booting.
 - Improved connection stability.
+
+## [0.1.9] - 2024-11-24
+
+### Added
+
+- Added support for Radiator Valve 'llflaywg', with new category_id 'wkf'
+
+### Changed
+
+- Different warnings in current version of HA.
