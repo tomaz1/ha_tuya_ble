@@ -1,482 +1,376 @@
-"""Support for Tuya Climate."""
-
+"""The Tuya BLE integration."""
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
-from tuya_sharing import CustomerDevice, Manager
+import logging
+from typing import Callable
 
 from homeassistant.components.climate import (
-    SWING_BOTH,
-    SWING_HORIZONTAL,
-    SWING_OFF,
-    SWING_ON,
-    SWING_VERTICAL,
-    ClimateEntity,
     ClimateEntityDescription,
+    ClimateEntity,
+)
+from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
+    HVACAction,
+    PRESET_AWAY,
+    PRESET_NONE,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from . import TuyaConfigEntry
-from .const import TUYA_DISCOVERY_NEW, DPCode, DPType
-from .entity import IntegerTypeData, TuyaEntity
+from .const import DOMAIN
+from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
+from .tuya_ble import TuyaBLEDataPoint, TuyaBLEDataPointType, TuyaBLEDevice
 
-TUYA_HVAC_TO_HA = {
-    "auto": HVACMode.HEAT_COOL,
-    "cold": HVACMode.COOL,
-    "freeze": HVACMode.COOL,
-    "heat": HVACMode.HEAT,
-    "hot": HVACMode.HEAT,
-    "manual": HVACMode.HEAT_COOL,
-    "wet": HVACMode.DRY,
-    "wind": HVACMode.FAN_ONLY,
+_LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class TuyaBLEClimateMapping:
+    description: ClimateEntityDescription
+
+    hvac_mode_dp_id: int = 0
+    hvac_modes: list[str] | None = None
+
+    hvac_switch_dp_id: int = 0
+    hvac_switch_mode: HVACMode | None = None
+
+    preset_mode_dp_ids: dict[str, int] | None = None
+
+    temperature_unit: str = UnitOfTemperature.CELSIUS
+    current_temperature_dp_id: int = 0
+    current_temperature_coefficient: float = 1.0
+    target_temperature_dp_id: int = 0
+    target_temperature_coefficient: float = 1.0
+    target_temperature_max: float = 30.0
+    target_temperature_min: float = 5
+    target_temperature_step: float = 1.0
+
+    current_humidity_dp_id: int = 0
+    current_humidity_coefficient: float = 1.0
+    target_humidity_dp_id: int = 0
+    target_humidity_coefficient: float = 1.0
+    target_humidity_max: float = 100.0
+    target_humidity_min: float = 0.0
+
+
+@dataclass
+class TuyaBLECategoryClimateMapping:
+    products: dict[str, list[TuyaBLEClimateMapping]] | None = None
+    mapping: list[TuyaBLEClimateMapping] | None = None
+
+
+mapping: dict[str, TuyaBLECategoryClimateMapping] = {
+    "wkf": TuyaBLECategoryClimateMapping(
+        products={
+            **dict.fromkeys(
+                [
+                "drlajpqc", 
+                "nhj2j7su",
+                "llflaywg",
+                ],  # Thermostatic Radiator Valve
+                [
+                # Thermostatic Radiator Valve
+                # - [x] 8   - Window
+                # - [x] 10  - Antifreeze
+                # - [x] 27  - Calibration
+                # - [x] 40  - Lock
+                # - [x] 101 - Switch
+                # - [x] 102 - Current
+                # - [x] 103 - Target
+                # - [ ] 104 - Heating time
+                # - [x] 105 - Battery power alarm
+                # - [x] 106 - Away
+                # - [x] 107 - Programming mode
+                # - [x] 108 - Programming switch
+                # - [ ] 109 - Programming data (deprecated - do not delete)
+                # - [ ] 110 - Historical data protocol (Day-Target temperature)
+                # - [ ] 111 - System Time Synchronization
+                # - [ ] 112 - Historical data (Week-Target temperature)
+                # - [ ] 113 - Historical data (Month-Target temperature)
+                # - [ ] 114 - Historical data (Year-Target temperature)
+                # - [ ] 115 - Historical data (Day-Current temperature)
+                # - [ ] 116 - Historical data (Week-Current temperature)
+                # - [ ] 117 - Historical data (Month-Current temperature)
+                # - [ ] 118 - Historical data (Year-Current temperature)
+                # - [ ] 119 - Historical data (Day-motor opening degree)
+                # - [ ] 120 - Historical data (Week-motor opening degree)
+                # - [ ] 121 - Historical data (Month-motor opening degree)
+                # - [ ] 122 - Historical data (Year-motor opening degree)
+                # - [ ] 123 - Programming data (Monday)
+                # - [ ] 124 - Programming data (Tuseday)
+                # - [ ] 125 - Programming data (Wednesday)
+                # - [ ] 126 - Programming data (Thursday)
+                # - [ ] 127 - Programming data (Friday)
+                # - [ ] 128 - Programming data (Saturday)
+                # - [ ] 129 - Programming data (Sunday)
+                # - [x] 130 - Water scale
+                TuyaBLEClimateMapping(
+                    description=ClimateEntityDescription(
+                        key="thermostatic_radiator_valve",
+                    ),
+                    hvac_switch_dp_id=101,
+                    hvac_switch_mode=HVACMode.HEAT,
+                    hvac_modes=[HVACMode.OFF, HVACMode.HEAT],
+                    preset_mode_dp_ids={PRESET_AWAY: 106, PRESET_NONE: 106},
+                    current_temperature_dp_id=102,
+                    current_temperature_coefficient=10.0,
+                    target_temperature_coefficient=10.0,
+                    target_temperature_step=0.5,
+                    target_temperature_dp_id=103,
+                    target_temperature_min=5.0,
+                    target_temperature_max=30.0,
+                    ),
+                ],
+            ),
+        },
+    ),
 }
 
 
-@dataclass(frozen=True, kw_only=True)
-class TuyaClimateEntityDescription(ClimateEntityDescription):
-    """Describe an Tuya climate entity."""
+def get_mapping_by_device(device: TuyaBLEDevice) -> list[TuyaBLECategoryClimateMapping]:
+    category = mapping.get(device.category)
+    if category is not None and category.products is not None:
+        product_mapping = category.products.get(device.product_id)
+        if product_mapping is not None:
+            return product_mapping
+        if category.mapping is not None:
+            return category.mapping
+        else:
+            return []
+    else:
+        return []
 
-    switch_only_hvac_mode: HVACMode
+
+class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
+    """Representation of a Tuya BLE Climate."""
+
+    def __init__(
+
+         _LOGGER.info(f"Test !!! ") #Krnekje našel kako se logira, tu je bilo še... a tu verjetno ni OK.. pustil da vidim kako se doda spremenljivke{self.entity_description.name}
+    
+        self,
+        hass: HomeAssistant,
+        coordinator: DataUpdateCoordinator,
+        device: TuyaBLEDevice,
+        product: TuyaBLEProductInfo,
+        mapping: TuyaBLEClimateMapping,
+    ) -> None:
+        super().__init__(hass, coordinator, device, product, mapping.description)
+        self._mapping = mapping
+        self._attr_hvac_mode = HVACMode.HEAT
+        self._attr_preset_mode = PRESET_NONE
+        self._attr_hvac_action = HVACAction.HEATING
+
+        if mapping.hvac_mode_dp_id and mapping.hvac_modes:
+            self._attr_hvac_modes = mapping.hvac_modes
+        elif mapping.hvac_switch_dp_id and mapping.hvac_switch_mode:
+            self._attr_hvac_modes = [HVACMode.OFF, mapping.hvac_switch_mode]
+
+        if mapping.preset_mode_dp_ids:
+            self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
+            self._attr_preset_modes = list(mapping.preset_mode_dp_ids.keys())
+
+        if mapping.target_temperature_dp_id != 0:
+            #self._attr_supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
+            self._attr_supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
+            self._attr_temperature_unit = mapping.temperature_unit
+            self._attr_max_temp = mapping.target_temperature_max
+            self._attr_min_temp = mapping.target_temperature_min
+            self._attr_target_temperature_step = mapping.target_temperature_step
+
+        if mapping.target_humidity_dp_id != 0:
+            self._attr_supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
+            self._attr_max_humidity = mapping.target_humidity_max
+            self._attr_min_humidity = mapping.target_humidity_min
+            
+    #https://github.com/kamaradclimber/heishamon-homeassistant/blob/0ac5769d64848b8c46feb69c6260dc7a53bd3242/custom_components/aquarea/climate.py
+    async def async_turn_off(self) -> None:
+        await self.async_set_hvac_mode(HVACMode.OFF)
+
+    async def async_turn_on(self) -> None:
+        await self.async_set_hvac_mode(HVACMode.HEATING)
 
 
-CLIMATE_DESCRIPTIONS: dict[str, TuyaClimateEntityDescription] = {
-    # Air conditioner
-    # https://developer.tuya.com/en/docs/iot/categorykt?id=Kaiuz0z71ov2n
-    "kt": TuyaClimateEntityDescription(
-        key="kt",
-        switch_only_hvac_mode=HVACMode.COOL,
-    ),
-    # Heater
-    # https://developer.tuya.com/en/docs/iot/f?id=K9gf46epy4j82
-    "qn": TuyaClimateEntityDescription(
-        key="qn",
-        switch_only_hvac_mode=HVACMode.HEAT,
-    ),
-    # Heater
-    # https://developer.tuya.com/en/docs/iot/categoryrs?id=Kaiuz0nfferyx
-    "rs": TuyaClimateEntityDescription(
-        key="rs",
-        switch_only_hvac_mode=HVACMode.HEAT,
-    ),
-    # Thermostat
-    # https://developer.tuya.com/en/docs/iot/f?id=K9gf45ld5l0t9
-    "wk": TuyaClimateEntityDescription(
-        key="wk",
-        switch_only_hvac_mode=HVACMode.HEAT_COOL,
-    ),
-    # Thermostatic Radiator Valve
-    # Not documented
-    "wkf": TuyaClimateEntityDescription(
-        key="wkf",
-        switch_only_hvac_mode=HVACMode.HEAT,
-    ),
-}
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+
+        if self._mapping.current_temperature_dp_id != 0:
+            datapoint = self._device.datapoints[self._mapping.current_temperature_dp_id]
+            if datapoint:
+                self._attr_current_temperature = (
+                    datapoint.value / self._mapping.current_temperature_coefficient
+                )
+
+        if self._mapping.target_temperature_dp_id != 0:
+            datapoint = self._device.datapoints[self._mapping.target_temperature_dp_id]
+            if datapoint:
+                self._attr_target_temperature = (
+                    datapoint.value / self._mapping.target_temperature_coefficient
+                )
+
+        if self._mapping.current_humidity_dp_id != 0:
+            datapoint = self._device.datapoints[self._mapping.current_humidity_dp_id]
+            if datapoint:
+                self._attr_current_humidity = (
+                    datapoint.value / self._mapping.current_humidity_coefficient
+                )
+
+        if self._mapping.target_humidity_dp_id != 0:
+            datapoint = self._device.datapoints[self._mapping.target_humidity_dp_id]
+            if datapoint:
+                self._attr_target_humidity = (
+                    datapoint.value / self._mapping.target_humidity_coefficient
+                )
+
+        if self._mapping.hvac_mode_dp_id != 0 and self._mapping.hvac_modes:
+            datapoint = self._device.datapoints[self._mapping.hvac_mode_dp_id]
+            if datapoint:
+                self._attr_hvac_mode = (
+                    self._mapping.hvac_modes[datapoint.value]
+                    if datapoint.value < len(self._mapping.hvac_modes)
+                    else None
+                )
+        elif self._mapping.hvac_switch_dp_id != 0 and self._mapping.hvac_switch_mode:
+            datapoint = self._device.datapoints[self._mapping.hvac_switch_dp_id]
+            if datapoint:
+                self._attr_hvac_mode = (
+                    self._mapping.hvac_switch_mode if datapoint.value else HVACMode.OFF
+                )
+
+        if self._mapping.preset_mode_dp_ids:
+            current_preset_mode = PRESET_NONE
+            for preset_mode, dp_id in self._mapping.preset_mode_dp_ids.items():
+                datapoint = self._device.datapoints[dp_id]
+                if datapoint and datapoint.value:
+                    current_preset_mode = preset_mode
+                    break
+            self._attr_preset_mode = current_preset_mode
+
+        try:
+            if (
+                self._attr_preset_mode == PRESET_AWAY
+                or self._attr_hvac_mode == HVACMode.OFF
+                or self._attr_target_temperature <= self._attr_current_temperature
+            ):
+                self._attr_hvac_action = HVACAction.IDLE
+            else:
+                self._attr_hvac_action = HVACAction.HEATING
+        except:
+            pass
+
+        self.async_write_ha_state()
+
+    async def async_set_temperature(self, **kwargs) -> None:
+        """Set new target temperature."""
+        if self._mapping.target_temperature_dp_id != 0:
+            int_value = int(
+                kwargs["temperature"] * self._mapping.target_temperature_coefficient
+            )
+            datapoint = self._device.datapoints.get_or_create(
+                self._mapping.target_temperature_dp_id,
+                TuyaBLEDataPointType.DT_VALUE,
+                int_value,
+            )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(int_value))
+
+    async def async_set_humidity(self, humidity: int) -> None:
+        """Set new target humidity."""
+        if self._mapping.target_humidity_dp_id != 0:
+            int_value = int(humidity * self._mapping.target_humidity_coefficient)
+            datapoint = self._device.datapoints.get_or_create(
+                self._mapping.target_humidity_dp_id,
+                TuyaBLEDataPointType.DT_VALUE,
+                int_value,
+            )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(int_value))
+
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+        """Set new target hvac mode."""
+        if (
+            self._mapping.hvac_mode_dp_id != 0
+            and self._mapping.hvac_modes
+            and hvac_mode in self._mapping.hvac_modes
+        ):
+            int_value = self._mapping.hvac_modes.index(hvac_mode)
+            datapoint = self._device.datapoints.get_or_create(
+                self._mapping.target_humidity_dp_id,
+                TuyaBLEDataPointType.DT_VALUE,
+                int_value,
+            )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(int_value))
+        elif self._mapping.hvac_switch_dp_id != 0 and self._mapping.hvac_switch_mode:
+            bool_value = hvac_mode == self._mapping.hvac_switch_mode
+            datapoint = self._device.datapoints.get_or_create(
+                self._mapping.hvac_switch_dp_id,
+                TuyaBLEDataPointType.DT_BOOL,
+                bool_value,
+            )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(bool_value))
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set new preset mode."""
+        if self._mapping.preset_mode_dp_ids:
+            datapoint: TuyaBLEDataPoint | None = None
+            bool_value = False
+
+            keys = [x for x in self._mapping.preset_mode_dp_ids.keys()]
+            values = [
+                x for x in self._mapping.preset_mode_dp_ids.values()
+            ]  # Get all DP IDs
+            # TRVs with only Away and None modes can be set with a single datapoint and use a single DP ID
+            if all(values[0] == elem for elem in values) and keys[0] == PRESET_AWAY:
+                for dp_id in values:
+                    bool_value = preset_mode == PRESET_AWAY
+                    datapoint = self._device.datapoints.get_or_create(
+                        dp_id,
+                        TuyaBLEDataPointType.DT_BOOL,
+                        bool_value,
+                    )
+                    break
+            else:
+                if self._mapping.preset_mode_dp_ids:
+                    for (
+                        dp_preset_mode,
+                        dp_id,
+                    ) in self._mapping.preset_mode_dp_ids.items():
+                        bool_value = dp_preset_mode == preset_mode
+                        datapoint = self._device.datapoints.get_or_create(
+                            dp_id,
+                            TuyaBLEDataPointType.DT_BOOL,
+                            bool_value,
+                        )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(bool_value))
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: TuyaConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Tuya climate dynamically through Tuya discovery."""
-    hass_data = entry.runtime_data
-
-    @callback
-    def async_discover_device(device_ids: list[str]) -> None:
-        """Discover and add a discovered Tuya climate."""
-        entities: list[TuyaClimateEntity] = []
-        for device_id in device_ids:
-            device = hass_data.manager.device_map[device_id]
-            if device and device.category in CLIMATE_DESCRIPTIONS:
-                entities.append(
-                    TuyaClimateEntity(
-                        device,
-                        hass_data.manager,
-                        CLIMATE_DESCRIPTIONS[device.category],
-                        hass.config.units.temperature_unit,
-                    )
-                )
-        async_add_entities(entities)
-
-    async_discover_device([*hass_data.manager.device_map])
-
-    entry.async_on_unload(
-        async_dispatcher_connect(hass, TUYA_DISCOVERY_NEW, async_discover_device)
-    )
-
-
-class TuyaClimateEntity(TuyaEntity, ClimateEntity):
-    """Tuya Climate Device."""
-
-    _current_humidity: IntegerTypeData | None = None
-    _current_temperature: IntegerTypeData | None = None
-    _hvac_to_tuya: dict[str, str]
-    _set_humidity: IntegerTypeData | None = None
-    _set_temperature: IntegerTypeData | None = None
-    entity_description: TuyaClimateEntityDescription
-    _attr_name = None
-    _enable_turn_on_off_backwards_compatibility = False
-
-    def __init__(
-        self,
-        device: CustomerDevice,
-        device_manager: Manager,
-        description: TuyaClimateEntityDescription,
-        system_temperature_unit: UnitOfTemperature,
-    ) -> None:
-        """Determine which values to use."""
-        self._attr_target_temperature_step = 1.0
-        self.entity_description = description
-
-        super().__init__(device, device_manager)
-
-        # If both temperature values for celsius and fahrenheit are present,
-        # use whatever the device is set to, with a fallback to celsius.
-        prefered_temperature_unit = None
-        if all(
-            dpcode in device.status
-            for dpcode in (DPCode.TEMP_CURRENT, DPCode.TEMP_CURRENT_F)
-        ) or all(
-            dpcode in device.status for dpcode in (DPCode.TEMP_SET, DPCode.TEMP_SET_F)
-        ):
-            prefered_temperature_unit = UnitOfTemperature.CELSIUS
-            if any(
-                "f" in device.status[dpcode].lower()
-                for dpcode in (DPCode.C_F, DPCode.TEMP_UNIT_CONVERT)
-                if isinstance(device.status.get(dpcode), str)
-            ):
-                prefered_temperature_unit = UnitOfTemperature.FAHRENHEIT
-
-        # Default to System Temperature Unit
-        self._attr_temperature_unit = system_temperature_unit
-
-        # Figure out current temperature, use preferred unit or what is available
-        celsius_type = self.find_dpcode(
-            (DPCode.TEMP_CURRENT, DPCode.UPPER_TEMP), dptype=DPType.INTEGER
-        )
-        fahrenheit_type = self.find_dpcode(
-            (DPCode.TEMP_CURRENT_F, DPCode.UPPER_TEMP_F), dptype=DPType.INTEGER
-        )
-        if fahrenheit_type and (
-            prefered_temperature_unit == UnitOfTemperature.FAHRENHEIT
-            or (
-                prefered_temperature_unit == UnitOfTemperature.CELSIUS
-                and not celsius_type
+    """Set up the Tuya BLE sensors."""
+    data: TuyaBLEData = hass.data[DOMAIN][entry.entry_id]
+    mappings = get_mapping_by_device(data.device)
+    entities: list[TuyaBLEClimate] = []
+    for mapping in mappings:
+        entities.append(
+            TuyaBLEClimate(
+                hass,
+                data.coordinator,
+                data.device,
+                data.product,
+                mapping,
             )
-        ):
-            self._attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
-            self._current_temperature = fahrenheit_type
-        elif celsius_type:
-            self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-            self._current_temperature = celsius_type
-
-        # Figure out setting temperature, use preferred unit or what is available
-        celsius_type = self.find_dpcode(
-            DPCode.TEMP_SET, dptype=DPType.INTEGER, prefer_function=True
         )
-        fahrenheit_type = self.find_dpcode(
-            DPCode.TEMP_SET_F, dptype=DPType.INTEGER, prefer_function=True
-        )
-        if fahrenheit_type and (
-            prefered_temperature_unit == UnitOfTemperature.FAHRENHEIT
-            or (
-                prefered_temperature_unit == UnitOfTemperature.CELSIUS
-                and not celsius_type
-            )
-        ):
-            self._set_temperature = fahrenheit_type
-        elif celsius_type:
-            self._set_temperature = celsius_type
-
-        # Get integer type data for the dpcode to set temperature, use
-        # it to define min, max & step temperatures
-        if self._set_temperature:
-            self._attr_supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
-            self._attr_max_temp = self._set_temperature.max_scaled
-            self._attr_min_temp = self._set_temperature.min_scaled
-            self._attr_target_temperature_step = self._set_temperature.step_scaled
-
-        # Determine HVAC modes
-        self._attr_hvac_modes: list[HVACMode] = []
-        self._hvac_to_tuya = {}
-        if enum_type := self.find_dpcode(
-            DPCode.MODE, dptype=DPType.ENUM, prefer_function=True
-        ):
-            self._attr_hvac_modes = [HVACMode.OFF]
-            unknown_hvac_modes: list[str] = []
-            for tuya_mode in enum_type.range:
-                if tuya_mode in TUYA_HVAC_TO_HA:
-                    ha_mode = TUYA_HVAC_TO_HA[tuya_mode]
-                    self._hvac_to_tuya[ha_mode] = tuya_mode
-                    self._attr_hvac_modes.append(ha_mode)
-                else:
-                    unknown_hvac_modes.append(tuya_mode)
-
-            if unknown_hvac_modes:  # Tuya modes are presets instead of hvac_modes
-                self._attr_hvac_modes.append(description.switch_only_hvac_mode)
-                self._attr_preset_modes = unknown_hvac_modes
-                self._attr_supported_features |= ClimateEntityFeature.PRESET_MODE
-        elif self.find_dpcode(DPCode.SWITCH, prefer_function=True):
-            self._attr_hvac_modes = [
-                HVACMode.OFF,
-                description.switch_only_hvac_mode,
-            ]
-
-        # Determine dpcode to use for setting the humidity
-        if int_type := self.find_dpcode(
-            DPCode.HUMIDITY_SET, dptype=DPType.INTEGER, prefer_function=True
-        ):
-            self._attr_supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
-            self._set_humidity = int_type
-            self._attr_min_humidity = int(int_type.min_scaled)
-            self._attr_max_humidity = int(int_type.max_scaled)
-
-        # Determine dpcode to use for getting the current humidity
-        self._current_humidity = self.find_dpcode(
-            DPCode.HUMIDITY_CURRENT, dptype=DPType.INTEGER
-        )
-
-        # Determine fan modes
-        if enum_type := self.find_dpcode(
-            (DPCode.FAN_SPEED_ENUM, DPCode.WINDSPEED),
-            dptype=DPType.ENUM,
-            prefer_function=True,
-        ):
-            self._attr_supported_features |= ClimateEntityFeature.FAN_MODE
-            self._attr_fan_modes = enum_type.range
-
-        # Determine swing modes
-        if self.find_dpcode(
-            (
-                DPCode.SHAKE,
-                DPCode.SWING,
-                DPCode.SWITCH_HORIZONTAL,
-                DPCode.SWITCH_VERTICAL,
-            ),
-            prefer_function=True,
-        ):
-            self._attr_supported_features |= ClimateEntityFeature.SWING_MODE
-            self._attr_swing_modes = [SWING_OFF]
-            if self.find_dpcode((DPCode.SHAKE, DPCode.SWING), prefer_function=True):
-                self._attr_swing_modes.append(SWING_ON)
-
-            if self.find_dpcode(DPCode.SWITCH_HORIZONTAL, prefer_function=True):
-                self._attr_swing_modes.append(SWING_HORIZONTAL)
-
-            if self.find_dpcode(DPCode.SWITCH_VERTICAL, prefer_function=True):
-                self._attr_swing_modes.append(SWING_VERTICAL)
-
-        if DPCode.SWITCH in self.device.function:
-            self._attr_supported_features |= (
-                ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
-            )
-
-    async def async_added_to_hass(self) -> None:
-        """Call when entity is added to hass."""
-        await super().async_added_to_hass()
-
-    def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        """Set new target hvac mode."""
-        commands = [{"code": DPCode.SWITCH, "value": hvac_mode != HVACMode.OFF}]
-        if hvac_mode in self._hvac_to_tuya:
-            commands.append(
-                {"code": DPCode.MODE, "value": self._hvac_to_tuya[hvac_mode]}
-            )
-        self._send_command(commands)
-
-    def set_preset_mode(self, preset_mode):
-        """Set new target preset mode."""
-        commands = [{"code": DPCode.MODE, "value": preset_mode}]
-        self._send_command(commands)
-
-    def set_fan_mode(self, fan_mode: str) -> None:
-        """Set new target fan mode."""
-        self._send_command([{"code": DPCode.FAN_SPEED_ENUM, "value": fan_mode}])
-
-    def set_humidity(self, humidity: int) -> None:
-        """Set new target humidity."""
-        if self._set_humidity is None:
-            raise RuntimeError(
-                "Cannot set humidity, device doesn't provide methods to set it"
-            )
-
-        self._send_command(
-            [
-                {
-                    "code": self._set_humidity.dpcode,
-                    "value": self._set_humidity.scale_value_back(humidity),
-                }
-            ]
-        )
-
-    def set_swing_mode(self, swing_mode: str) -> None:
-        """Set new target swing operation."""
-        # The API accepts these all at once and will ignore the codes
-        # that don't apply to the device being controlled.
-        self._send_command(
-            [
-                {
-                    "code": DPCode.SHAKE,
-                    "value": swing_mode == SWING_ON,
-                },
-                {
-                    "code": DPCode.SWING,
-                    "value": swing_mode == SWING_ON,
-                },
-                {
-                    "code": DPCode.SWITCH_VERTICAL,
-                    "value": swing_mode in (SWING_BOTH, SWING_VERTICAL),
-                },
-                {
-                    "code": DPCode.SWITCH_HORIZONTAL,
-                    "value": swing_mode in (SWING_BOTH, SWING_HORIZONTAL),
-                },
-            ]
-        )
-
-    def set_temperature(self, **kwargs: Any) -> None:
-        """Set new target temperature."""
-        if self._set_temperature is None:
-            raise RuntimeError(
-                "Cannot set target temperature, device doesn't provide methods to"
-                " set it"
-            )
-
-        self._send_command(
-            [
-                {
-                    "code": self._set_temperature.dpcode,
-                    "value": round(
-                        self._set_temperature.scale_value_back(kwargs["temperature"])
-                    ),
-                }
-            ]
-        )
-
-    @property
-    def current_temperature(self) -> float | None:
-        """Return the current temperature."""
-        if self._current_temperature is None:
-            return None
-
-        temperature = self.device.status.get(self._current_temperature.dpcode)
-        if temperature is None:
-            return None
-
-        if self._current_temperature.scale == 0 and self._current_temperature.step != 1:
-            # The current temperature can have a scale of 0 or 1 and is used for
-            # rounding, Home Assistant doesn't need to round but we will always
-            # need to divide the value by 10^1 in case of 0 as scale.
-            # https://developer.tuya.com/en/docs/iot/shift-temperature-scale-follow-the-setting-of-app-account-center?id=Ka9qo7so58efq#title-7-Round%20values
-            temperature = temperature / 10
-
-        return self._current_temperature.scale_value(temperature)
-
-    @property
-    def current_humidity(self) -> int | None:
-        """Return the current humidity."""
-        if self._current_humidity is None:
-            return None
-
-        humidity = self.device.status.get(self._current_humidity.dpcode)
-        if humidity is None:
-            return None
-
-        return round(self._current_humidity.scale_value(humidity))
-
-    @property
-    def target_temperature(self) -> float | None:
-        """Return the temperature currently set to be reached."""
-        if self._set_temperature is None:
-            return None
-
-        temperature = self.device.status.get(self._set_temperature.dpcode)
-        if temperature is None:
-            return None
-
-        return self._set_temperature.scale_value(temperature)
-
-    @property
-    def target_humidity(self) -> int | None:
-        """Return the humidity currently set to be reached."""
-        if self._set_humidity is None:
-            return None
-
-        humidity = self.device.status.get(self._set_humidity.dpcode)
-        if humidity is None:
-            return None
-
-        return round(self._set_humidity.scale_value(humidity))
-
-    @property
-    def hvac_mode(self) -> HVACMode:
-        """Return hvac mode."""
-        # If the switch off, hvac mode is off as well. Unless the switch
-        # the switch is on or doesn't exists of course...
-        if not self.device.status.get(DPCode.SWITCH, True):
-            return HVACMode.OFF
-
-        if DPCode.MODE not in self.device.function:
-            if self.device.status.get(DPCode.SWITCH, False):
-                return self.entity_description.switch_only_hvac_mode
-            return HVACMode.OFF
-
-        if (
-            mode := self.device.status.get(DPCode.MODE)
-        ) is not None and mode in TUYA_HVAC_TO_HA:
-            return TUYA_HVAC_TO_HA[mode]
-
-        # If the switch is on, and the mode does not match any hvac mode.
-        if self.device.status.get(DPCode.SWITCH, False):
-            return self.entity_description.switch_only_hvac_mode
-
-        return HVACMode.OFF
-
-    @property
-    def preset_mode(self) -> str | None:
-        """Return preset mode."""
-        if DPCode.MODE not in self.device.function:
-            return None
-
-        mode = self.device.status.get(DPCode.MODE)
-        if mode in TUYA_HVAC_TO_HA:
-            return None
-
-        return mode
-
-    @property
-    def fan_mode(self) -> str | None:
-        """Return fan mode."""
-        return self.device.status.get(DPCode.FAN_SPEED_ENUM)
-
-    @property
-    def swing_mode(self) -> str:
-        """Return swing mode."""
-        if any(
-            self.device.status.get(dpcode) for dpcode in (DPCode.SHAKE, DPCode.SWING)
-        ):
-            return SWING_ON
-
-        horizontal = self.device.status.get(DPCode.SWITCH_HORIZONTAL)
-        vertical = self.device.status.get(DPCode.SWITCH_VERTICAL)
-        if horizontal and vertical:
-            return SWING_BOTH
-        if horizontal:
-            return SWING_HORIZONTAL
-        if vertical:
-            return SWING_VERTICAL
-
-        return SWING_OFF
-
-    def turn_on(self) -> None:
-        """Turn the device on, retaining current HVAC (if supported)."""
-        self._send_command([{"code": DPCode.SWITCH, "value": True}])
-
-    def turn_off(self) -> None:
-        """Turn the device on, retaining current HVAC (if supported)."""
-        self._send_command([{"code": DPCode.SWITCH, "value": False}])
+    async_add_entities(entities)
