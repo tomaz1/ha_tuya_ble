@@ -59,7 +59,7 @@ The integration works locally, but connection to Tuya BLE device requires device
 * Smart Locks (category_id 'ms')
   + Smart Lock (product_id 'ludzroix', 'isk2p555').
 
-* Climate (category_id 'wk')
+* Climate (category_id 'wkf')
   + Thermostatic Radiator Valve (product_ids 'drlajpqc', 'nhj2j7su', 'llflaywg').
 
 * Smart water bottle (category_id 'znhsb')
