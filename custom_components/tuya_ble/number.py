@@ -350,7 +350,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ),
         },
     ),
-    "wk": TuyaBLECategoryNumberMapping(
+    "wkf": TuyaBLECategoryNumberMapping(
         products={
             **dict.fromkeys(
                 [
