@@ -240,7 +240,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             ),
         },
     ),
-    "wk": TuyaBLECategorySwitchMapping(
+    "wkf": TuyaBLECategorySwitchMapping(
         products={
             **dict.fromkeys(
                 [
