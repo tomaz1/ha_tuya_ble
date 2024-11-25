@@ -142,27 +142,6 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
             ),
         },
     ),
-    #"wkf": TuyaBLECategoryTextMapping(
-    #    products={
-    #        **dict.fromkeys(
-    #            [
-    #                "llflaywg",   # Thermostatic Radiator Valve 
-    #            ],
-    #            [
-    #                TuyaBLETextMapping(
-    #                    dp_id=112,
-    #                    description=TextEntityDescription(
-    #                        key="program",
-    #                        icon="mdi:application-outline",
-    #                        default_value="verzija",
-    #                        entity_category=EntityCategory.DIAGNOSTIC,
-    #                    ),
-    #                    # getter=get_fingerbot_program,
-    #                ),
-    #            ]
-    #        ),
-    #    },
-    #),
 }
 
 
