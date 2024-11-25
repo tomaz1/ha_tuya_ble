@@ -326,17 +326,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
         products={
             "llflaywg":  # Thermostatic Radiator Valve 
             [
-                TuyaBLESensorMapping(
-                    dp_id=13,
-                    description=SensorEntityDescription(
-                        key="battery_percentage",
-                        device_class=SensorDeviceClass.BATTERY,
-                        native_unit_of_measurement=PERCENTAGE,
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                        state_class=SensorStateClass.MEASUREMENT,
-                    ),
-                    getter=battery_enum_getter,
-                ),
+                TuyaBLEBatteryMapping(dp_id=13),
             ],
         },
     ),
