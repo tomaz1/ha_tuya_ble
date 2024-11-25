@@ -153,8 +153,8 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
                         dp_id=112,
                         description=TextEntityDescription(
                             key="program",
-                            icon="mdi-application",
-                            default_value="verzija"
+                            icon="mdi:application-outline",
+                            default_value="verzija",
                             entity_category=EntityCategory.DIAGNOSTIC,
                         ),
                         # getter=get_fingerbot_program,
