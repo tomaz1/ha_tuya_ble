@@ -16,7 +16,9 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
+from homeassistant.const import (
+    PERCENTAGE
+)
 from .const import (
     DOMAIN,
 )
@@ -72,19 +74,12 @@ mapping: dict[str, TuyaBLECategoryBinarySensorMapping] = {
         products={
             "llflaywg": [  # New Device Example
                 TuyaBLEBinarySensorMapping(
-                    dp_id=8,
+                    dp_id=13,
                     description=BinarySensorEntityDescription(
-                        key="window_check",
-                        device_class=BinarySensorDeviceClass.WINDOW,
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                ),
-                TuyaBLEBinarySensorMapping(
-                    dp_id=12,
-                    description=BinarySensorEntityDescription(
-                        key="child_lock",
-                        device_class=BinarySensorDeviceClass.LOCK,
-                        entity_category=EntityCategory.CONFIG,
+                        key="battery_percentage",
+                        native_unit_of_measurement=PERCENTAGE,
+                        device_class=BinarySensorDeviceClass.BATTERY,
+                        entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                 ),
             ],
