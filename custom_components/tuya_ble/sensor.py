@@ -326,7 +326,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
         products={
             "llflaywg":  # Thermostatic Radiator Valve 
             [
-                TuyaBLEBatteryMapping(dp_id=13),
+                TuyaBLEBatteryMapping(dp_id=13, icon="mdi-battery-bluetooth"),
             ],
         },
     ),
