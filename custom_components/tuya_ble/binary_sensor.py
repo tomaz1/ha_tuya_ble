@@ -32,7 +32,6 @@ TuyaBLEBinarySensorIsAvailable = (
     Callable[["TuyaBLEBinarySensor", TuyaBLEProductInfo], bool] | None
 )
 
-
 @dataclass
 class TuyaBLEBinarySensorMapping:
     dp_id: int
@@ -68,6 +67,7 @@ mapping: dict[str, TuyaBLECategoryBinarySensorMapping] = {
         },
     ),
 }
+
 
 def get_mapping_by_device(device: TuyaBLEDevice) -> list[TuyaBLEBinarySensorMapping]:
     category = mapping.get(device.category)
