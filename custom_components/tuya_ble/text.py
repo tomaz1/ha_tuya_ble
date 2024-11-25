@@ -146,7 +146,7 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
         products={
             **dict.fromkeys(
                 [
-                    "llflaywg",  # Thermostatic Radiator Valve 
+                    "llflaywg",   # Thermostatic Radiator Valve 
                 ],
                 [
                     TuyaBLETextMapping(
@@ -156,7 +156,7 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
                             icon="mdi-application",
                             entity_category=EntityCategory.DIAGNOSTIC,
                         ),
-                        #getter=get_fingerbot_program,
+                        # getter=get_fingerbot_program,
                     ),
                 ]
             ),
