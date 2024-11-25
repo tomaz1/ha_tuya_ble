@@ -50,7 +50,6 @@ class TuyaBLESensorMapping:
     is_available: TuyaBLESensorIsAvailable = None
 @dataclass
 class TuyaBLEBatteryMapping(TuyaBLESensorMapping):
-    icon: str = "mdi:battery"  # Default value if not provided
     description: SensorEntityDescription = field(
         default_factory=lambda: SensorEntityDescription(
             key="battery",
@@ -327,7 +326,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
         products={
             "llflaywg":  # Thermostatic Radiator Valve 
             [
-                TuyaBLEBatteryMapping(dp_id=13, icon="mdi-battery-bluetooth"),
+                TuyaBLEBatteryMapping(dp_id=13),
             ],
         },
     ),
