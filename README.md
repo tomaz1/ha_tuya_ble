@@ -32,7 +32,7 @@ It is not so simple to add 'llflaywg'. We need to find all DPs which device uses
        Open your project->Devices->All Devices->click pencil on device (Change Control Instruction Mode) -> "DP Instruction" and "Save Configuration"
 
   Then: Smart Home Basic Service -> Smart Home Device Control-> Get Device Specification Attribute (last one will show "dp_id"s). [One in the middle with the same name, will not show DPs]
-* or we could guess what DPs are via tuya-uncover and changing settings on phone app and observing which and how value of DP change: 
+* or we could guess what DPs are via tuya-uncover and changing settings on phone app and observing which DP's value change and to what it is changed: 
         https://github.com/blakadder/tuya-uncover?tab=readme-ov-file
         
  \* better solution is first line, because we also get descriptions for DPs!
