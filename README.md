@@ -3,7 +3,7 @@
 .
 .
 .
-#  **DOESN'T WORK (YET) !!!**
+#  **DOESN'T WORK (YET) !!! OK, it works partly - only setting temperature and Child lock is working (sorry didn't have time to develop this yet) **
 .
 .
 .
