@@ -1,9 +1,9 @@
 
 #  **It is finaly working!** (llflaywg)
 
-![device-info](<images/llflaywg-device-info.png>)
-![device-controls](<images/llflaywg-controls.png>)
-![device-diagnostic](<images/llflaywg-diagnostic.png>)
+<img src="images/llflaywg-device-info.png">
+<img src="https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-controls.png">
+<img src="https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-diagnostic.png">
 
 # Home Assistant support for Tuya BLE devices
 
