@@ -181,10 +181,10 @@
         "name": "Antifreeze"
       },
       "child_lock": {
-        "name": "Child Lock"
+        "name": "Child lock"
       },
       "window_check": {
-        "name": "Window Check"
+        "name": "Window check"
       },
       "water_scale_proof": {
         "name": "Anti-scale"

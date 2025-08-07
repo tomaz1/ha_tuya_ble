@@ -167,6 +167,14 @@ def set_fingerbot_program_position(
             new_value[2] = int(value)
             self._hass.create_task(datapoint.set_value(new_value))
 
+def is_valve_wkf_llflaywg_in_eco_mode(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> bool:
+    dp = self._device.datapoints[114]
+    if dp:
+        return dp.value == 1
+    return False
 
 @dataclass
 class TuyaBLEDownPositionDescription(NumberEntityDescription):
@@ -385,6 +393,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         dp_id=101,
                         description=NumberEntityDescription(
                             key="temp_correction",
+                            name="Temp. corr.",
                             icon="mdi:thermometer-lines",
                             native_min_value=-10.0,
                             native_max_value=10.0,
@@ -392,6 +401,22 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                             native_step=0.1,
                             entity_category=EntityCategory.CONFIG,
                         ),
+                        coefficient=10.0,
+                    ),
+                                        TuyaBLENumberMapping(
+                        dp_id=115,
+                        description=NumberEntityDescription(
+                            key="eco_temp_deviation",
+                            name="Temp. deviation (eco)",
+                            icon="mdi:thermometer-lines",
+                            native_min_value=0.5,
+                            native_max_value=5.0,
+                            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                            native_step=0.1,
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        coefficient=10.0,
+                        is_available=is_valve_wkf_llflaywg_in_eco_mode,
                     ),
                 ],
             ),

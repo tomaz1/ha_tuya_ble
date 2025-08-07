@@ -1,13 +1,9 @@
 
-.
-.
-.
-.
-#  **DOESN'T WORK (YET) !!! OK, it works partly - only setting temperature and Child lock is working (sorry didn't have time to develop this yet) **
-.
-.
-.
-.
+#  **It is finaly working!** (llflaywg)
+
+![device-info](<images/llflaywg-device-info.png>)
+![device-controls](<images/llflaywg-controls.png>)
+![device-diagnostic](<images/llflaywg-diagnostic.png>)
 
 # Home Assistant support for Tuya BLE devices
 
@@ -21,11 +17,13 @@ This fork is FROM: https://github.com/markusg1234/ha_tuya_ble
 
 __________________________________________
 [@tomaz1](https://github.com/tomaz1/ha_tuya_ble):
-Added Thermostatic Radiator Valve product_id: 'llflaywg'
+Added Thermostatic Radiator Valve product_id: 'llflaywg' (Category 'wkf')
 
 [Radiator Valve was bought in Bauhaus-Slovenia]
+
+![Radiator Valve](<images/12-crnoozadje.png>)
   
-It is not so simple to add 'llflaywg'. We need to find all DPs which device uses. Good resources, what helped me:
+It is not so simple to add **'llflaywg'**. We need to find all DPs which device uses. Good resources, what helped me:
   
 * In Tuya developer platform we have to change to "DP mode" to get all DP's! (It took me long time to find this important information !)
        https://github.com/0x5e/homebridge-tuya-platform

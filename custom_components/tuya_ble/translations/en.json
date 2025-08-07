@@ -29,6 +29,16 @@
         }
     },
     "entity": {
+        "climate": {
+            "valve_mode": {
+                "state": {
+                    "auto": "Auto",
+                    "heat": "Heat",
+                    "off": "Off",
+                    "dry": "Open 100%"
+                }
+            }
+        },
         "binary_sensor": {
             "low_battery": {
                 "name": "Battery"
@@ -181,7 +191,7 @@
                 "name": "Severely exceed alarm"
             },
             "child_lock": {
-                "name": "Child Lock"
+                "name": "Child lock"
             },
             "lock_motor_state": {
                 "name": "Motor State"
@@ -223,7 +233,7 @@
                 "name": "Irrigation valve - Zone 2"
             },
             "window_check": {
-                "name": "Window Check"
+                "name": "Window check"
             }
         },
         "text": {

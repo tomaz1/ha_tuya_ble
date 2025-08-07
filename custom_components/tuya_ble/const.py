@@ -49,6 +49,29 @@ FINGERBOT_MODE_SWITCH: Final = "switch"
 FINGERBOT_MODE_PROGRAM: Final = "program"
 FINGERBOT_BUTTON_EVENT: Final = "fingerbot_button_pressed"
 
+WINDOW_OPENED: Final = "opened"
+WINDOW_CLOSED: Final = "closed"
+
+WORK_STATE_OFF: Final = "closed"
+WORK_STATE_ON: Final = "opened"
+ 
+MOTOR_THRUST_STRONG: Final = "strong"
+MOTOR_THRUST_MIDDLE: Final = "middle"
+MOTOR_THRUST_WEAK: Final = "weak"
+
+LED_BRIGHTNESS_HIGH: Final = "high"
+LED_BRIGHTNESS_MID: Final = "mid"
+LED_BRIGHTNESS_LOW: Final = "low"
+LED_BRIGHTNESS_ALL: Final = [LED_BRIGHTNESS_HIGH, LED_BRIGHTNESS_MID, LED_BRIGHTNESS_LOW]
+
+SCREEN_ORIENTATION_UP: Final = "up"
+SCREEN_ORIENTATION_DOWN: Final = "down"
+SCREEN_ORIENTATION_LEFT: Final = "left"
+SCREEN_ORIENTATION_RIGHT: Final = "right"
+SCREEN_ORIENTATION_ALL: Final = [SCREEN_ORIENTATION_UP, SCREEN_ORIENTATION_DOWN, SCREEN_ORIENTATION_LEFT, SCREEN_ORIENTATION_RIGHT]
+SCREEN_ORIENTATION_VALUE_MAP: Final = { SCREEN_ORIENTATION_UP: 0, SCREEN_ORIENTATION_DOWN: 2 } # needed for llflaywg, which only supports 0 and 2 as values
+
+
 @dataclass
 class Country:
     """Describe a supported country."""

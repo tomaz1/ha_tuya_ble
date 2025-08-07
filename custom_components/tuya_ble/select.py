@@ -21,6 +21,14 @@ from .const import (
     FINGERBOT_MODE_PROGRAM,
     FINGERBOT_MODE_PUSH,
     FINGERBOT_MODE_SWITCH,
+    LED_BRIGHTNESS_HIGH,
+    LED_BRIGHTNESS_MID,
+    LED_BRIGHTNESS_LOW,
+    LED_BRIGHTNESS_ALL,    
+    SCREEN_ORIENTATION_UP,
+    SCREEN_ORIENTATION_DOWN,
+    SCREEN_ORIENTATION_ALL,
+    SCREEN_ORIENTATION_VALUE_MAP,
 )
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
@@ -34,7 +42,7 @@ class TuyaBLESelectMapping:
     description: SelectEntityDescription
     force_add: bool = True
     dp_type: TuyaBLEDataPointType | None = None
-
+    value_map: dict[str, int] | None = None  # za LCD orientacijo, ker delujeta samo vrednosti 0 in 2
 
 @dataclass
 class TemperatureUnitDescription(SelectEntityDescription):
@@ -204,6 +212,35 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
             ],
         },
     ),
+    "wkf": TuyaBLECategorySelectMapping(
+        products={
+            "llflaywg": 
+            [  # Thermostatic Radiator Valve
+                TuyaBLESelectMapping(
+                dp_id=111,
+                description=SelectEntityDescription(
+                    key="led_brightness",
+                    name="LED Brightness",
+                    icon="mdi:brightness-6",
+                    entity_category=EntityCategory.CONFIG,
+                    options=LED_BRIGHTNESS_ALL,
+                    ),
+                ),
+                TuyaBLESelectMapping(
+                    dp_id=113,
+                    description=SelectEntityDescription(
+                        key="screen_orientation",
+                        name="Screen orientation",
+                        icon="mdi:axis-z-rotate-clockwise",  # ali drug primeren mdi
+                        entity_category=EntityCategory.CONFIG,
+                        options=[SCREEN_ORIENTATION_UP, SCREEN_ORIENTATION_DOWN],
+                    ),
+                    value_map=SCREEN_ORIENTATION_VALUE_MAP, # Potrebno za pravilno preslikavo vrednosti, ker je na voljo samo 0 in 2
+                ),
+            ],
+        }
+    ),
+
 }
 
 
@@ -247,29 +284,41 @@ class TuyaBLESelect(TuyaBLEEntity, SelectEntity):
     @property
     def current_option(self) -> str | None:
         """Return the selected entity option to represent the entity state."""
-        # Raw value
-        value: str | None = None
         datapoint = self._device.datapoints[self._mapping.dp_id]
-        if datapoint:
-            value = datapoint.value
-            if value >= 0 and value < len(self._attr_options):
-                return self._attr_options[value]
-            else:
-                return value
-        return None
+        if not datapoint or datapoint.value is None:
+            return None
+
+        # Če je podan value_map, obratno preslikaj vrednost
+        if self._mapping.value_map:
+            for k, v in self._mapping.value_map.items():
+                if v == datapoint.value:
+                    return k
+            return str(datapoint.value)  # fallback
+        else:
+            # Privzet način z options seznamom
+            if 0 <= datapoint.value < len(self._attr_options):
+                return self._attr_options[datapoint.value]
+            return str(datapoint.value)
 
     def select_option(self, value: str) -> None:
         """Change the selected option."""
-        if value in self._attr_options:
+        # Če imamo value_map jo uporabimo
+        if self._mapping.value_map:
+            if value not in self._mapping.value_map:
+                raise ValueError(f"Unsupported option: {value}")
+            int_value = self._mapping.value_map[value]
+        else:
+            if value not in self._attr_options:
+                raise ValueError(f"Unsupported option: {value}")
             int_value = self._attr_options.index(value)
-            datapoint = self._device.datapoints.get_or_create(
-                self._mapping.dp_id,
-                TuyaBLEDataPointType.DT_ENUM,
-                int_value,
-            )
-            if datapoint:
-                self._hass.create_task(datapoint.set_value(int_value))
 
+        datapoint = self._device.datapoints.get_or_create(
+            self._mapping.dp_id,
+            TuyaBLEDataPointType.DT_ENUM,
+            int_value,
+        )
+        if datapoint:
+            self._hass.create_task(datapoint.set_value(int_value))
 
 async def async_setup_entry(
     hass: HomeAssistant,

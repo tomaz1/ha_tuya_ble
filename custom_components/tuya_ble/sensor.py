@@ -32,9 +32,19 @@ from .const import (
     CO2_LEVEL_ALARM,
     CO2_LEVEL_NORMAL,
     DOMAIN,
+    WINDOW_CLOSED,
+    WINDOW_OPENED,
+    WORK_STATE_ON,
+    WORK_STATE_OFF,
+    MOTOR_THRUST_STRONG,
+    MOTOR_THRUST_MIDDLE,
+    MOTOR_THRUST_WEAK,
 )
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
+
+from homeassistant.components.select import SelectEntity
+
 _LOGGER = logging.getLogger(__name__)
 SIGNAL_STRENGTH_DP_ID = -1
 TuyaBLESensorIsAvailable = Callable[["TuyaBLESensor", TuyaBLEProductInfo], bool] | None
@@ -79,6 +89,75 @@ def battery_enum_getter(self: TuyaBLESensor) -> None:
     datapoint = self._device.datapoints[104]
     if datapoint:
         self._attr_native_value = datapoint.value * 20.0
+def number_without_decimal_getter(sensor: TuyaBLESensor) -> None:
+    """Retrieve an integer native_value from a DT_VALUE datapoint (no decimals)."""
+    dp_id = sensor._mapping.dp_id
+
+    # 1) preveri, ali ta dp_id obstaja
+    has_dp = False
+    try:
+        has_dp = sensor._device.datapoints.has_id(dp_id, TuyaBLEDataPointType.DT_VALUE)
+    except AttributeError:
+        has_dp = dp_id in sensor._device.datapoints  # fallback – če `has_id` ne obstaja, le preveri indeks
+
+    if not has_dp:
+        sensor._attr_native_value = None
+        return
+
+    # 2) varno pridobi podatkovno točko
+    try:
+        dp = sensor._device.datapoints[dp_id]  # TuyaBLEDataPoints podpira [] za indeksiranje
+    except (KeyError, IndexError):
+        sensor._attr_native_value = None
+        return
+
+    # 3) preveri tip in nastavi native_value
+    if dp is None or dp.type != TuyaBLEDataPointType.DT_VALUE:
+        sensor._attr_native_value = None if dp is None else dp.value
+    else:
+        # Če je vrednost '70' ali '70.0', vrne samo cel del:
+        try:
+            sensor._attr_native_value = int(dp.value)
+        except (TypeError, ValueError):
+            # V skrajnih primerih – npr. če dp.value=“75%” ali None
+            sensor._attr_native_value = None
+
+def make_valve_percent_icon_getter(dp_id: int):
+    """Factory - vrne getter(sensor), ki nastavi percent native_value in boiler ikonico."""
+    def _inner(sensor: TuyaBLESensor) -> None:
+        # varno pridobi datapoint
+        try:
+            dp = sensor._device.datapoints[dp_id]
+        except (KeyError, IndexError, AttributeError):
+            sensor._attr_native_value = None
+            return
+
+        if dp is None or dp.value is None:
+            sensor._attr_native_value = None
+            return
+
+        # pretvorba v %
+        try:
+            percent = int(dp.value / 10)
+        except (ValueError, TypeError):
+            sensor._attr_native_value = None
+            return
+
+        sensor._attr_native_value = percent
+        sensor._attr_suggested_display_precision = 0
+
+        # izbira ikone po stopnji odpiranja
+        if percent <= 10:
+            icon = "mdi:valve-closed"
+        elif percent >= 90:
+            icon = "mdi:valve-open"
+        else:
+            icon = "mdi:valve"
+        sensor._attr_icon = icon
+
+    return _inner
+
+
 @dataclass
 class TuyaBLECategorySensorMapping:
     products: dict[str, list[TuyaBLESensorMapping]] | None = None
@@ -327,6 +406,100 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
             "llflaywg":  # Thermostatic Radiator Valve 
             [
                 TuyaBLEBatteryMapping(dp_id=13),
+                TuyaBLESensorMapping(
+                    dp_id=6,
+                    description=SensorEntityDescription(
+                        key="work_state",
+                        icon="mdi:radiator-disabled",
+                        name="Work state",
+                        device_class=SensorDeviceClass.ENUM,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        options=[
+                            WORK_STATE_OFF,
+                            WORK_STATE_ON,
+                        ],
+                    ),
+                    icons=[
+                        "mdi:radiator-off",
+                        "mdi:radiator",
+                    ],
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=7,
+                    description=SensorEntityDescription(
+                        key="window_state",
+                        icon="mdi:curtains",
+                        name="Window state",
+                        device_class=SensorDeviceClass.ENUM,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        options=[
+                            WINDOW_CLOSED,
+                            WINDOW_OPENED,
+                        ],
+                    ),
+                    icons=[
+                        "mdi:window-closed-variant",
+                        "mdi:window-open-variant",
+                    ],
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=112,
+                    dp_type=TuyaBLEDataPointType.DT_VALUE,
+                    getter=number_without_decimal_getter,  # ker želim samo celo število brez decimalke
+                    description=SensorEntityDescription(
+                        key="fw_version_int",
+                        name="Fw. version",
+                        icon="mdi:chip",
+                        device_class=None,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=109,
+                    dp_type=TuyaBLEDataPointType.DT_STRING,
+                    description=SensorEntityDescription(
+                        key="mfg_model",
+                        name="Manuf. model",
+                        icon="mdi:factory",
+                        device_class=None,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=110,
+                    description=SensorEntityDescription(
+                        key="motor_thrust_state",
+                        icon="mdi:car-speed-limiter",
+                        name="Motor thrust",
+                        device_class=SensorDeviceClass.ENUM,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        options=[
+                            MOTOR_THRUST_STRONG,
+                            MOTOR_THRUST_MIDDLE,
+                            MOTOR_THRUST_WEAK,
+                        ],
+                    ),
+                    icons=[
+                        "mdi:speedometer",
+                        "mdi:speedometer-medium",
+                        "mdi:speedometer-slow",
+                    ],
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=108,
+                    dp_type=TuyaBLEDataPointType.DT_VALUE,
+                    coefficient=10.0,
+                    description=SensorEntityDescription(
+                        key="valve_open_degree",
+                        name="Valve open deg.",
+                        icon="mdi:valve",
+                        native_unit_of_measurement=PERCENTAGE,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                    getter=make_valve_percent_icon_getter(108),
+                ),
+
             ],
         },
     ),
@@ -443,6 +616,7 @@ class TuyaBLESensor(TuyaBLEEntity, SensorEntity):
         if result and self._mapping.is_available:
             result = self._mapping.is_available(self, self._product)
         return result
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -473,4 +647,5 @@ async def async_setup_entry(
                     mapping,
                 )
             )
+
     async_add_entities(entities)

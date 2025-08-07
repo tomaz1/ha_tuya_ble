@@ -90,8 +90,14 @@ and this project adheres to [Semantic Versioning].
 
 ### Added
 
-- Added support for Radiator Valve 'llflaywg', with new category_id 'wkf'
+- Added support for Radiator Valve 'llflaywg', with new category_id 'wkf' (only get temperature, set temperature and child lock)
 
 ### Changed
 
 - Different warnings in current version of HA.
+
+## [0.2.0] - 2025-08-07
+
+### Added
+
+- Added full support for Radiator Valve 'llflaywg', with new category_id 'wkf'
