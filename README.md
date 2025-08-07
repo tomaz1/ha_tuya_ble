@@ -1,9 +1,9 @@
 
 #  **It is finaly working!** (llflaywg)
 
-<img src="images/llflaywg-device-info.png">
-<img src="https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-controls.png">
-<img src="https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-diagnostic.png">
+![device-info](<https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-device-info.png?raw=true>)
+![device-controls](<https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-controls.png?raw=true>)
+![device-diagnostic](<https://github.com/tomaz1/ha_tuya_ble/blob/main/images/llflaywg-diagnostic.png?raw=true>)
 
 # Home Assistant support for Tuya BLE devices
 
@@ -21,7 +21,7 @@ Added Thermostatic Radiator Valve product_id: 'llflaywg' (Category 'wkf')
 
 [Radiator Valve was bought in Bauhaus-Slovenia]
 
-![Radiator Valve](<images/12-crnoozadje.png>)
+![Radiator Valve](<https://github.com/tomaz1/ha_tuya_ble/blob/main/images/12-crnoozadje.png?raw=true>)
   
 It is not so simple to add **'llflaywg'**. We need to find all DPs which device uses. Good resources, what helped me:
   
