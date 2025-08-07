@@ -356,8 +356,6 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         self._attr_hvac_action = HVACAction.HEATING
         self._attr_translation_key = "valve_mode"
 
-        # _LOGGER.info(f"Test !!! ") #Krnekje našel kako se logira, tu je bilo še... a tu verjetno ni OK.. pustil da vidim kako se doda spremenljivke{self.entity_description.name}
-
         if mapping.hvac_mode_bool_dp_id and mapping.hvac_switch_mode:
             self._attr_hvac_modes = [HVACMode.OFF, mapping.hvac_switch_mode]
         elif mapping.hvac_mode_enum_dp_id and mapping.hvac_modes:
