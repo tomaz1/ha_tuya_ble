@@ -297,6 +297,7 @@ mapping: dict[str, TuyaBLECategoryClimateMapping] = {
                 TuyaBLEClimateMapping(
                     description=ClimateEntityDescription(
                         key="thermostatic_radiator_valve",
+                        translation_key="valve_mode",
                     ),
                     hvac_mode_enum_dp_id=1,
                     # value_map preslika HVACMode → integer, enako velja za enum in value tipe
@@ -354,7 +355,6 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         self._attr_hvac_mode = HVACMode.HEAT
         self._attr_preset_mode = PRESET_NONE
         self._attr_hvac_action = HVACAction.HEATING
-        self._attr_translation_key = "valve_mode"
 
         if mapping.hvac_mode_bool_dp_id and mapping.hvac_switch_mode:
             self._attr_hvac_modes = [HVACMode.OFF, mapping.hvac_switch_mode]

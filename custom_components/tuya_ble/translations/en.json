@@ -1,264 +1,496 @@
 {
-    "config": {
-        "abort": {
-            "no_unconfigured_devices": "No unconfigured devices found."
-        },
-        "error": {
-            "device_not_registered": "Device is not registered in Tuya cloud",
-            "invalid_auth": "Invalid authentication",
-            "login_error": "Login error ({code}): {msg}"
-        },
-        "flow_title": "{name}",
-        "step": {
-            "device": {
-                "data": {
-                    "address": "Tuya BLE device"
-                },
-                "description": "Select Tuya BLE device to setup. Device must be registered in the cloud using the mobile application. It's better to unbind the device from Tuya Bluetooth gateway, if any."
-            },
-            "login": {
-                "data": {
-                    "access_id": "Tuya IoT Access ID",
-                    "access_secret": "Tuya IoT Access Secret",
-                    "country_code": "Country",
-                    "password": "Password",
-                    "username": "Account"
-                },
-                "description": "Tuya BLE requires obtaining encryption key from Tuya cloud. Almost all devices only need to access the cloud once during setup.\n\nRefer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
-            }
-        }
+  "config": {
+    "abort": {
+      "already_configured": "This Tuya BLE device is already configured.",
+      "reauth_successful": "Local credentials have been updated."
     },
-    "entity": {
-        "climate": {
-            "valve_mode": {
-                "state": {
-                    "auto": "Auto",
-                    "heat": "Heat",
-                    "off": "Off",
-                    "dry": "Open 100%"
-                }
-            }
-        },
-        "binary_sensor": {
-            "low_battery": {
-                "name": "Battery"
-            }
-        },
-        "button": {
-            "push": {
-                "name": "Push"
-            }
-        },
-        "number": {
-            "brightness": {
-                "name": "Brightness"
-            },
-            "carbon_dioxide_alarm_level": {
-                "name": "Alarm level"
-            },
-            "countdown_duration": {
-                "name": "Irrigation duration"
-            },
-            "countdown_duration_z1": {
-                "name": "Irrigation duration - Zone 1"
-            },
-            "countdown_duration_z2": {
-                "name": "Irrigation duration - Zone 2"
-            },
-            "down_position": {
-                "name": "Down position"
-            },
-            "hold_time": {
-                "name": "Hold time"
-            },
-            "program_idle_position": {
-                "name": "Idle position"
-            },
-            "program_repeats_count": {
-                "name": "Repeats count"
-            },
-            "recommended_water_intake": {
-                "name": "Recommended water intake"
-            },
-            "reporting_period": {
-                "name": "Reporting period"
-            },
-            "up_position": {
-                "name": "Up position"
-            }
-        },
-        "select": {
-            "beep_volume": {
-                "name": "Lock Volume"
-            },
-            "fingerbot_mode": {
-                "name": "Mode",
-                "state": {
-                    "program": "Program",
-                    "push": "Push",
-                    "switch": "Switch"
-                }
-            },
-            "reminder_mode": {
-                "name": "Reminder mode",
-                "state": {
-                    "interval_reminder": "Interval",
-                    "schedule_reminder": "Schedule"
-                }
-            },
-            "temperature_unit": {
-                "name": "Temperature unit"
-            }
-        },
-        "sensor": {
-            "alarm_lock": {
-                "name": "Alarm"
-            },
-            "battery": {
-                "name": "Battery"
-            },
-            "battery_charging": {
-                "name": "Battery charging",
-                "state": {
-                    "charged": "Charged",
-                    "charging": "Charging",
-                    "not_charging": "Not charging"
-                }
-            },
-            "battery_state": {
-                "name": "Battery state",
-                "state": {
-                    "high": "High",
-                    "low": "Low",
-                    "normal": "Normal"
-                }
-            },
-            "carbon_dioxide": {
-                "name": "Carbon dioxide"
-            },
-            "carbon_dioxide_alarm": {
-                "name": "Carbon dioxide level",
-                "state": {
-                    "alarm": "Alarm",
-                    "normal": "Normal"
-                }
-            },
-            "humidity": {
-                "name": "Humidity"
-            },
-            "low_battery": {
-                "name": "Low Battery"
-            },
-            "moisture": {
-                "name": "Moisture"
-            },
-            "residual_electricity": {
-                "name": "Battery"
-            },
-            "signal_strength": {
-                "name": "Signal strength"
-            },
-            "temperature": {
-                "name": "Temperature"
-            },
-            "time_left": {
-                "name": "Remaining irrigation time"
-            },
-            "use_time_z1": {
-                "name": "Last irrigation time - Zone 1"
-            },
-            "use_time_z2": {
-                "name": "Last irrigation time - Zone 2"
-            },
-            "water_intake": {
-                "name": "Water intake"
-            },
-            "wrong_finger": {
-                "name": "Wrong Fingerprint"
-            },
-            "wrong_password": {
-                "name": "Wrong Password"
-            }
-        },
-        "switch": {
-            "antifreeze": {
-                "name": "Antifreeze"
-            },
-            "carbon_dioxide_alarm_switch": {
-                "name": "Alarm enabled"
-            },
-            "carbon_dioxide_severely_exceed_alarm": {
-                "name": "Severely exceed alarm"
-            },
-            "child_lock": {
-                "name": "Child lock"
-            },
-            "lock_motor_state": {
-                "name": "Motor State"
-            },
-            "low_battery_alarm": {
-                "name": "Low battery alarm"
-            },
-            "manual_control": {
-                "name": "Manual control"
-            },
-            "program": {
-                "name": "Program"
-            },
-            "program_repeat_forever": {
-                "name": "Repeat forever"
-            },
-            "programming_mode": {
-                "name": "Programming Mode"
-            },
-            "programming_switch": {
-                "name": "Programming Switch"
-            },
-            "reverse_positions": {
-                "name": "Reverse positions"
-            },
-            "switch": {
-                "name": "Switch"
-            },
-            "water_scale_proof": {
-                "name": "Anti-scale"
-            },
-            "water_valve": {
-                "name": "Irrigation valve"
-            },
-            "water_valve_z1": {
-                "name": "Irrigation valve - Zone 1"
-            },
-            "water_valve_z2": {
-                "name": "Irrigation valve - Zone 2"
-            },
-            "window_check": {
-                "name": "Window check"
-            }
-        },
-        "text": {
-            "program": {
-                "name": "Program: position[/time];..."
-            }
-        }
+    "error": {
+      "missing_user_code": "Enter the User Code from your Smart Life or Tuya Smart app.",
+      "cannot_connect": "Could not complete the Tuya login request. Check your connection and User Code, then try again.",
+      "qr_not_confirmed": "Login is not confirmed or the QR code has expired. Scan and confirm in the app, then submit again. If needed, select Generate a new QR code.",
+      "device_list_failed": "Could not retrieve your app devices. Submit again to retry, or restart setup to sign in again.",
+      "no_account_devices": "No devices were returned for this account. Check that they are paired in the app and shared with Home Assistant, then submit to retry or restart setup.",
+      "account_device_not_found": "This account did not return the device configured in this entry. Restart with the correct app account or use manual setup.",
+      "invalid_address": "Enter a valid Bluetooth MAC address, for example AA:BB:CC:DD:EE:FF.",
+      "missing_manual_credentials": "UUID, local key, device ID, category and product ID are required. If Tuya omitted a value, enter it manually before saving.",
+      "wrong_device": "Keep the device ID of the selected or existing device. Add a separate integration entry for a different device.",
+      "bluetooth_device_mismatch": "The selected Bluetooth device advertises a different UUID. Choose the correct device or MAC address.",
+      "missing_address": "No Bluetooth MAC address is available. Select a nearby Bluetooth device or enter its MAC address."
     },
-    "options": {
-        "error": {
-            "device_not_registered": "Device is not registered in Tuya cloud",
-            "invalid_auth": "Invalid authentication",
-            "login_error": "Login error ({code}): {msg}"
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Tuya BLE setup",
+        "description": "Choose User Code to sign in using a QR code, or select Manual setup and fill in the section below.",
+        "data": {
+          "setup_method": "Setup method"
         },
-        "step": {
-            "login": {
-                "data": {
-                    "access_id": "Tuya IoT Access ID",
-                    "access_secret": "Tuya IoT Access Secret",
-                    "country_code": "Country",
-                    "password": "Password",
-                    "username": "Account"
-                },
-                "description": "Refer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+        "sections": {
+          "user_code": {
+            "name": "User Code (recommended)",
+            "description": "Sign in with your Smart Life or Tuya Smart app account. No Tuya Developer Platform account is required.",
+            "data": {
+              "user_code": "User Code"
+            },
+            "data_description": {
+              "user_code": "In Smart Life or Tuya Smart: Me → ⚙️ Settings → Account and Security → User Code. [Obtaining User Code for sign-in](https://www.home-assistant.io/integrations/tuya/#obtaining-user-code-for-sign-in)."
             }
+          },
+          "manual": {
+            "name": "Manual setup",
+            "description": "Enter local device credentials when Manual setup is selected.",
+            "data": {
+              "address": "MAC address",
+              "device_name": "Device name",
+              "uuid": "Device UUID",
+              "local_key": "Local key",
+              "device_id": "Device ID",
+              "category": "Category code",
+              "product_id": "Product ID",
+              "product_name": "Product name",
+              "product_model": "Model"
+            },
+            "data_description": {
+              "address": "Bluetooth MAC address in AA:BB:CC:DD:EE:FF format",
+              "device_name": "Optional friendly name. Leave blank to use the default name.",
+              "uuid": "Tuya device UUID",
+              "local_key": "Encryption key used for BLE communication",
+              "device_id": "Tuya device ID",
+              "category": "Tuya category code",
+              "product_id": "Tuya product ID",
+              "product_name": "Optional product name",
+              "product_model": "Optional hardware model"
+            }
+          }
         }
+      },
+      "scan": {
+        "title": "Scan the QR code",
+        "description": "Open Smart Life or Tuya Smart, use + → Scan, and scan this QR code. Confirm the login in the app, then select Submit here. To replace an expired QR code, select Generate a new QR code and Submit, then scan the replacement.",
+        "data": {
+          "QR": "Login QR code",
+          "new_qr_code": "Generate a new QR code"
+        }
+      },
+      "account_device": {
+        "title": "Choose your app device",
+        "description": "Select the device whose local BLE credentials you want to save. Your app account may also contain Wi-Fi or Zigbee devices; select a supported Tuya BLE device.",
+        "data": {
+          "device_id": "Device"
+        }
+      },
+      "device_credentials": {
+        "title": "Confirm local BLE credentials",
+        "description": "These values were retrieved from your app account. The Bluetooth MAC is filled from a matching advertisement, a Bluetooth MAC returned by Tuya, or the discovery card where you selected Add. Confirm that the selected app device is the same physical device. If no MAC is available, choose a nearby Bluetooth device or enter its MAC. Complete any missing required fields before saving.",
+        "data": {
+          "address": "MAC address",
+          "device_name": "Device name",
+          "uuid": "Device UUID",
+          "local_key": "Local key",
+          "device_id": "Device ID",
+          "category": "Category code",
+          "product_id": "Product ID",
+          "product_name": "Product name",
+          "product_model": "Model",
+          "bluetooth_device": "Nearby Bluetooth device"
+        },
+        "data_description": {
+          "address": "Bluetooth MAC address. When setup starts from a discovered device, its address is suggested if no conflicting UUID is known. Confirm that it belongs to the app device you selected.",
+          "device_name": "Optional friendly name. Leave blank to use the default name.",
+          "uuid": "Tuya device UUID",
+          "local_key": "Encryption key used for BLE communication",
+          "device_id": "Tuya device ID",
+          "category": "Tuya category code",
+          "product_id": "Tuya product ID",
+          "product_name": "Optional product name",
+          "product_model": "Optional hardware model",
+          "bluetooth_device": "Selecting a device here overrides the MAC address field. Keep the default to use the address above."
+        }
+      }
     }
+  },
+  "entity": {
+    "button": {
+      "push": {
+        "name": "Push"
+      },
+      "bright_lid_screen": {
+        "name": "Activate lid display"
+      }
+    },
+    "number": {
+      "brightness": {
+        "name": "Brightness"
+      },
+      "carbon_dioxide_alarm_level": {
+        "name": "Alarm level"
+      },
+      "down_position": {
+        "name": "Down position"
+      },
+      "hold_time": {
+        "name": "Hold time"
+      },
+      "reporting_period": {
+        "name": "Reporting period"
+      },
+      "up_position": {
+        "name": "Up position"
+      },
+      "recommended_water_intake": {
+        "name": "Recommended water intake"
+      },
+      "program_repeats_count": {
+        "name": "Repeats count"
+      },
+      "program_idle_position": {
+        "name": "Idle position"
+      },
+      "countdown_duration": {
+        "name": "Irrigation duration"
+      },
+      "countdown_duration_z1": {
+        "name": "Irrigation duration - Zone 1"
+      },
+      "countdown_duration_z2": {
+        "name": "Irrigation duration - Zone 2"
+      },
+      "temperature_calibration": {
+        "name": "Temperature calibration"
+      }
+    },
+    "select": {
+      "fingerbot_mode": {
+        "name": "Mode",
+        "state": {
+          "program": "Program",
+          "push": "Push",
+          "switch": "Switch"
+        }
+      },
+      "temperature_unit": {
+        "name": "Temperature unit"
+      },
+      "reminder_mode": {
+        "name": "Reminder mode",
+        "state": {
+          "interval_reminder": "Interval",
+          "schedule_reminder": "Schedule",
+          "alarm_reminder": "Alarm"
+        }
+      },
+      "beep_volume": {
+        "name": "Lock Volume",
+        "state": {
+          "mute": "Muted",
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High"
+        }
+      },
+      "led_brightness": {
+        "name": "LED brightness",
+        "state": {
+          "high": "High",
+          "mid": "Medium",
+          "low": "Low"
+        }
+      },
+      "screen_orientation": {
+        "name": "Screen orientation",
+        "state": {
+          "up": "Up",
+          "down": "Down"
+        }
+      }
+    },
+    "binary_sensor": {
+      "low_battery": {
+        "name": "Battery"
+      },
+      "battery": {
+        "name": "Battery"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "battery_charging": {
+        "name": "Battery charging",
+        "state": {
+          "charged": "Charged",
+          "charging": "Charging",
+          "not_charging": "Not charging"
+        }
+      },
+      "battery_state": {
+        "name": "Battery state",
+        "state": {
+          "high": "High",
+          "low": "Low",
+          "normal": "Normal"
+        }
+      },
+      "carbon_dioxide": {
+        "name": "Carbon dioxide"
+      },
+      "carbon_dioxide_alarm": {
+        "name": "Carbon dioxide level",
+        "state": {
+          "alarm": "Alarm",
+          "normal": "Normal"
+        }
+      },
+      "humidity": {
+        "name": "Humidity"
+      },
+      "moisture": {
+        "name": "Moisture"
+      },
+      "signal_strength": {
+        "name": "Signal strength"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "water_intake": {
+        "name": "Water intake"
+      },
+      "residual_electricity": {
+        "name": "Battery"
+      },
+      "alarm_lock": {
+        "name": "Alarm",
+        "state": {
+          "wrong_finger": "Unrecognized fingerprint",
+          "wrong_password": "Incorrect password",
+          "low_battery": "Low battery"
+        }
+      },
+      "wrong_finger": {
+        "name": "Wrong Fingerprint"
+      },
+      "wrong_password": {
+        "name": "Wrong Password"
+      },
+      "low_battery": {
+        "name": "Low Battery"
+      },
+      "time_left": {
+        "name": "Remaining irrigation time"
+      },
+      "use_time_z1": {
+        "name": "Last irrigation time - Zone 1"
+      },
+      "use_time_z2": {
+        "name": "Last irrigation time - Zone 2"
+      },
+      "temp_current": {
+        "name": "Temperature"
+      },
+      "battery_percentage": {
+        "name": "Battery"
+      },
+      "motor_thrust_state": {
+        "name": "Motor thrust",
+        "state": {
+          "strong": "Strong",
+          "middle": "Medium",
+          "weak": "Weak"
+        }
+      },
+      "child_lock_state": {
+        "name": "Child lock state",
+        "state": {
+          "disabled": "Disabled",
+          "enabled": "Enabled"
+        }
+      },
+      "window_state": {
+        "name": "Window state",
+        "state": {
+          "closed": "Closed",
+          "opened": "Open"
+        }
+      },
+      "work_state": {
+        "name": "Work state",
+        "state": {
+          "closed": "Closed",
+          "opened": "Open"
+        }
+      }
+    },
+    "switch": {
+      "programming_mode": {
+        "name": "Programming Mode"
+      },
+      "programming_switch": {
+        "name": "Programming Switch"
+      },
+      "antifreeze": {
+        "name": "Antifreeze"
+      },
+      "child_lock": {
+        "name": "Child lock"
+      },
+      "window_check": {
+        "name": "Window check"
+      },
+      "water_scale_proof": {
+        "name": "Anti-scale"
+      },
+      "carbon_dioxide_alarm_switch": {
+        "name": "Alarm enabled"
+      },
+      "carbon_dioxide_severely_exceed_alarm": {
+        "name": "Severely exceed alarm"
+      },
+      "low_battery_alarm": {
+        "name": "Low battery alarm"
+      },
+      "manual_control": {
+        "name": "Manual control"
+      },
+      "program": {
+        "name": "Program"
+      },
+      "program_repeat_forever": {
+        "name": "Repeat forever"
+      },
+      "reverse_positions": {
+        "name": "Reverse positions"
+      },
+      "switch": {
+        "name": "Switch"
+      },
+      "lock_motor_state": {
+        "name": "Motor State"
+      },
+      "water_valve": {
+        "name": "Irrigation valve"
+      },
+      "water_valve_z1": {
+        "name": "Irrigation valve - Zone 1"
+      },
+      "water_valve_z2": {
+        "name": "Irrigation valve - Zone 2"
+      }
+    },
+    "text": {
+      "program": {
+        "name": "Program: position[/time];..."
+      }
+    },
+    "climate": {
+      "valve_mode": {
+        "state": {
+          "auto": "Auto",
+          "heat": "Heat",
+          "off": "Off",
+          "dry": "Open 100%"
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "missing_user_code": "Enter the User Code from your Smart Life or Tuya Smart app.",
+      "cannot_connect": "Could not complete the Tuya login request. Check your connection and User Code, then try again.",
+      "qr_not_confirmed": "Login is not confirmed or the QR code has expired. Scan and confirm in the app, then submit again. If needed, select Generate a new QR code.",
+      "device_list_failed": "Could not retrieve your app devices. Submit again to retry, or restart setup to sign in again.",
+      "no_account_devices": "No devices were returned for this account. Check that they are paired in the app and shared with Home Assistant, then submit to retry or restart setup.",
+      "account_device_not_found": "This account did not return the device configured in this entry. Restart with the correct app account or use manual setup.",
+      "invalid_address": "Enter a valid Bluetooth MAC address, for example AA:BB:CC:DD:EE:FF.",
+      "missing_manual_credentials": "UUID, local key, device ID, category and product ID are required. If Tuya omitted a value, enter it manually before saving.",
+      "wrong_device": "Keep the device ID of the selected or existing device. Add a separate integration entry for a different device.",
+      "bluetooth_device_mismatch": "The selected Bluetooth device advertises a different UUID. Choose the correct device or MAC address.",
+      "missing_address": "No Bluetooth MAC address is available. Select a nearby Bluetooth device or enter its MAC address."
+    },
+    "step": {
+      "init": {
+        "title": "Tuya BLE configuration",
+        "description": "Refresh the local key using User Code and QR login, or edit manual credentials. This updates the existing device and keeps its Bluetooth address.",
+        "data": {
+          "setup_method": "Setup method"
+        },
+        "sections": {
+          "user_code": {
+            "name": "User Code (recommended)",
+            "description": "Sign in with your Smart Life or Tuya Smart app account. No Tuya Developer Platform account is required.",
+            "data": {
+              "user_code": "User Code"
+            },
+            "data_description": {
+              "user_code": "In Smart Life or Tuya Smart: Me → ⚙️ Settings → Account and Security → User Code. [Obtaining User Code for sign-in](https://www.home-assistant.io/integrations/tuya/#obtaining-user-code-for-sign-in)."
+            }
+          },
+          "manual": {
+            "name": "Manual setup",
+            "description": "Enter local device credentials when Manual setup is selected.",
+            "data": {
+              "device_name": "Device name",
+              "uuid": "Device UUID",
+              "local_key": "Local key",
+              "device_id": "Device ID",
+              "category": "Category code",
+              "product_id": "Product ID",
+              "product_name": "Product name",
+              "product_model": "Model"
+            },
+            "data_description": {
+              "device_name": "Optional friendly name. Leave blank to use the default name.",
+              "uuid": "Tuya device UUID",
+              "local_key": "Encryption key used for BLE communication",
+              "device_id": "Tuya device ID",
+              "category": "Tuya category code",
+              "product_id": "Tuya product ID",
+              "product_name": "Optional product name",
+              "product_model": "Optional hardware model"
+            }
+          }
+        }
+      },
+      "scan": {
+        "title": "Scan the QR code",
+        "description": "Open Smart Life or Tuya Smart, use + → Scan, and scan this QR code. Confirm the login in the app, then select Submit here. To replace an expired QR code, select Generate a new QR code and Submit, then scan the replacement.",
+        "data": {
+          "QR": "Login QR code",
+          "new_qr_code": "Generate a new QR code"
+        }
+      },
+      "account_device": {
+        "title": "Choose your app device",
+        "description": "Select the device whose local BLE credentials you want to save. Your app account may also contain Wi-Fi or Zigbee devices; select a supported Tuya BLE device.",
+        "data": {
+          "device_id": "Device"
+        }
+      },
+      "device_credentials": {
+        "title": "Confirm local BLE credentials",
+        "description": "Confirm the refreshed credentials for the existing device. Its Bluetooth address remains unchanged. The local key is required.",
+        "data": {
+          "device_name": "Device name",
+          "uuid": "Device UUID",
+          "local_key": "Local key",
+          "device_id": "Device ID",
+          "category": "Category code",
+          "product_id": "Product ID",
+          "product_name": "Product name",
+          "product_model": "Model"
+        },
+        "data_description": {
+          "device_name": "Optional friendly name. Leave blank to use the default name.",
+          "uuid": "Tuya device UUID",
+          "local_key": "Encryption key used for BLE communication",
+          "device_id": "Tuya device ID",
+          "category": "Tuya category code",
+          "product_id": "Tuya product ID",
+          "product_name": "Optional product name",
+          "product_model": "Optional hardware model"
+        }
+      }
+    }
+  }
 }

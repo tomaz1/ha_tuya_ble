@@ -11,10 +11,10 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     UnitOfVolume,
+    UnitOfRatio,
     UnitOfTemperature,
     UnitOfTime
 )
@@ -85,6 +85,15 @@ def is_co2_alarm_enabled(self: TuyaBLESensor, product: TuyaBLEProductInfo) -> bo
     if datapoint:
         result = bool(datapoint.value)
     return result
+def child_lock_state_getter(sensor: TuyaBLESensor) -> None:
+    """Report the child lock state once its Boolean datapoint is available."""
+    datapoint = sensor._device.datapoints[sensor._mapping.dp_id]
+    if datapoint is None or not isinstance(datapoint.value, bool):
+        sensor._attr_native_value = None
+        return
+    sensor._attr_native_value = "enabled" if datapoint.value else "disabled"
+
+
 def battery_enum_getter(self: TuyaBLESensor) -> None:
     datapoint = self._device.datapoints[104]
     if datapoint:
@@ -184,7 +193,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                     description=SensorEntityDescription(
                         key="carbon_dioxide",
                         device_class=SensorDeviceClass.CO2,
-                        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+                        native_unit_of_measurement=UnitOfRatio.PARTS_PER_MILLION,
                         state_class=SensorStateClass.MEASUREMENT,
                     ),
                 ),
@@ -441,6 +450,19 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                         "mdi:window-closed-variant",
                         "mdi:window-open-variant",
                     ],
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=12,
+                    dp_type=TuyaBLEDataPointType.DT_BOOL,
+                    getter=child_lock_state_getter,
+                    description=SensorEntityDescription(
+                        key="child_lock_state",
+                        name="Child lock state",
+                        icon="mdi:account-lock",
+                        device_class=SensorDeviceClass.ENUM,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        options=["disabled", "enabled"],
+                    ),
                 ),
                 TuyaBLESensorMapping(
                     dp_id=112,
